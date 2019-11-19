@@ -13,24 +13,27 @@
 template<class T>
 class MinHeap {
 private:
-    // Use an array to save nodes, the max length is 2000.
+    /* Use an array to save nodes, the max length is 1999.
+     * The array starts with index of 1. The [0] is not used.
+     * Because if index starts from 0, the bitwise operations
+     * below will be a little more complex.
+    */
     T *HEAP_ARRAY = new int[2000];
     // Initial length is 0.
     int LENGTH = 0;
 
-    // Bit
+    // Bitwise operations
     inline int getParentIndex(int index) {
         return index >> 1;
     }
-
     inline int getLeftChildIndex(int index) {
         return index << 1;
     }
-
     inline int getRightChildIndex(int index) {
         return (index << 1) + 1;
     }
 
+    // Return the smaller (or equal) element between t1 and t2.
     inline T min(T t1, T t2) {
         if (t1 > t2) {
             return t2;
@@ -39,6 +42,7 @@ private:
         }
     }
 
+    // Bottom-up heapify the heap after a new element has been appended.
     int heapifyUp(int index) {
         if (index == 1) {
             return 0;
@@ -52,6 +56,7 @@ private:
         }
     }
 
+    // Top-down heapify the heap after remove some element.
     int heapifyDown(int index) {
         int left = getLeftChildIndex(index);
         int right = getRightChildIndex(index);
@@ -95,6 +100,12 @@ public:
         std::swap(HEAP_ARRAY[to_remove], HEAP_ARRAY[LENGTH]);
         LENGTH--;
         heapifyDown(to_remove);
+    }
+
+    void removeMin() {
+        std::swap(HEAP_ARRAY[1], HEAP_ARRAY[LENGTH]);
+        LENGTH--;
+        heapifyDown(1);
     }
 
     void print() {

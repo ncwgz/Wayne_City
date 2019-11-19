@@ -18,20 +18,20 @@ void testMinHeap()
         minHeap.insert(arr[i]);
         minHeap.print();
     }
-    minHeap.increase(1, 55);
+    minHeap.increase(1, 100);
     minHeap.print();
-    minHeap.remove(1);
+    minHeap.removeMin();
     minHeap.print();
     minHeap.remove(4);
     minHeap.print();
-    minHeap.remove(1);
+    minHeap.removeMin();
     minHeap.print();
-    minHeap.remove(1);
+    minHeap.removeMin();
     minHeap.print();
-    minHeap.remove(1);
+    minHeap.removeMin();
     minHeap.print();
-    minHeap.remove(1);
+    minHeap.remove(2);
     minHeap.print();
-    minHeap.remove(1);
+    minHeap.remove(3);
     minHeap.print();
 }
