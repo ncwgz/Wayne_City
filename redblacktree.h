@@ -7,24 +7,26 @@
 
 #endif //WAYNE_CITY_REDBLACKTREE_H
 
-template<class T>
+template <class K, class V>
 class Node {
 private:
     Node *parent = nullptr;
     Node *left = nullptr;
     Node *right = nullptr;
     bool isRed = false;
-    T data;
+    K key;
+    V value;
 public:
-    Node(T t) {
-        this->data = t;
+    Node(K key, V value) {
+        this->key = key;
+        this->value = value;
     }
 };
 
-template<class T>
+template <class K, class V>
 class RedBlackTree {
 private:
-    Node<T> *root = nullptr;
+    Node<K, V> *root = nullptr;
 
     /*
      * Left Rotate:
@@ -32,8 +34,8 @@ private:
      *    NL  R`     =>      N` RR`
      *      RL RR`         NL RL
      */
-    void leftRotate(Node<T> *node) {
-        Node<T> *right = node->right;
+    void leftRotate(Node<K, V> *node) {
+        Node<K, V> *right = node->right;
         node->right = right->left;
         right->left = node;
     }
@@ -44,14 +46,14 @@ private:
      *    `L  NR      =>     `LL `N
      *  `LL LR                  LR NR
      */
-    void rightRotate(Node<T> *node) {
-        Node<T> *left = node->left;
+    void rightRotate(Node<K, V> *node) {
+        Node<K, V> *left = node->left;
         node->left = left->right;
         left->right = node;
     }
 
-    void append(Node<T> *to_append, Node<T> *parent) {
-        if (parent->data > to_append->data) {
+    void append(Node<K, V> *to_append, Node<K, V> *parent) {
+        if (parent->key > to_append->key) {
             if (parent->left == nullptr) {
                 parent->left = to_append;
                 insertFix(to_append);
@@ -74,7 +76,7 @@ private:
         }
     }
 
-    void insertFix(Node<T> *node) {
+    void insertFix(Node<K, V> *node) {
         if (node == root) {
             return;
         }
@@ -122,34 +124,41 @@ private:
         }
     }
 
-    Node<T>* getRightMin(Node<T> *node) {
-        Node<T>* min = node->right;
+    Node<K, V>* getRightMin(Node<K, V> *node) {
+        Node<K, V>* min = node->right;
         while (min->left != nullptr) {
             min = min->left;
         }
         return min;
     }
 
-    Node<T>* getLeftMin(Node<T> *node) {
-        Node<T>* min = node->left;
+    Node<K, V>* getLeftMin(Node<K, V> *node) {
+        Node<K, V>* min = node->left;
         while (min->right != nullptr) {
             min = min->right;
         }
         return min;
     }
 
-    Node<T>* replace(Node<T> *to_replace) {
+    Node<K, V>* replace(K key) {
+        Node<K, V> * to_replace = this->getNodeByKey(key);
         if (to_replace->left == nullptr && to_replace->right == nullptr) {
             return;
         }
-        Node<T> *min = nullptr;
+        Node<K, V> *min = nullptr;
+        bool isToFixLeft = true;
         if (to_replace->left == nullptr) {
             min = getRightMin(to_replace);
             min->parent->left = to_replace;
+            isToFixLeft = false;
         } else {
             min = getLeftMin(to_replace);
             min->parent->right = to_replace;
+            isToFixLeft = true;
         }
+        bool originalNodeColor = to_replace->isRed;
+        bool originalMinColor = min->isRed;
+
         min->left = to_replace->left;
         min->right = to_replace->right;
         to_replace->left = nullptr;
@@ -161,13 +170,87 @@ private:
         } else {
             to_replace->parent->right = min;
         }
-        return min;
+
+        to_replace->isRed = originalMinColor;
+        min->isRed = originalNodeColor;
+
+        if (isToFixLeft) {
+            return min->left;
+        } else {
+            return min;
+        }
+    }
+
+    Node<K, V>* getNodeByKey(K key) {
+
     }
 
 public:
-    void insert(T &t) {
-        Node<T> node = Node<T>(t);
+    void insert(K key, V value) {
+        Node<K, V> node = Node<K, V>(key, value);
         node.isRed = true;
         append(node, root);
+    }
+
+    void search(K &key) {
+        
+    }
+
+    void search(K &kLeft, K &kRight) {
+
+    }
+
+    void remove(K &key) {
+        Node<K, V> *toFix = replace(key);
+        if (toFix->parent->isRed == false) {
+            while (toFix->isRed == false && toFix != root) {
+                if (toFix == toFix->parent->left) {
+                    Node<K, V> *cousin = toFix->parent->right;
+                    if (cousin->isRed) {
+                        cousin->isRed = false;
+                        toFix->parent->isRed = true;
+                        leftRotate(toFix->parent);
+                        cousin = toFix->parent->right;
+                    }
+                    if (cousin->left->isRed == false && cousin->right->isRed == false) {
+                        cousin->isRed = true;
+                        toFix = toFix->parent;
+                    } else if (cousin->right->isRed == false) {
+                        cousin->left->isRed = false;
+                        cousin->isRed = true;
+                        rightRotate(cousin);
+                        cousin = toFix->parent->right;
+                    }
+                    cousin->isRed = toFix->parent->isRed;
+                    toFix->parent->isRed = false;
+                    cousin->right->isRed = false;
+                    leftRotate(toFix->parent);
+                    toFix = root;
+                } else {
+                    Node<K, V> *cousin = toFix->parent->left;
+                    if (cousin->isRed) {
+                        cousin->isRed = false;
+                        toFix->parent->isRed = true;
+                        rightRotate(toFix->parent);
+                        cousin = toFix->parent->left;
+                    }
+                    if (cousin->right->isRed == false && cousin->left->isRed == false) {
+                        cousin->isRed = true;
+                        toFix = toFix->parent;
+                    } else if (cousin->left->isRed == false) {
+                        cousin->right->isRed = false;
+                        cousin->isRed = true;
+                        leftRotate(cousin);
+                        cousin = toFix->parent->left;
+                    }
+                    cousin->isRed = toFix->parent->isRed;
+                    toFix->parent->isRed = false;
+                    cousin->left->isRed = false;
+                    rightRotate(toFix->parent);
+                    toFix = root;
+                }
+            }
+            toFix->isRed = false;
+        }
     }
 };
