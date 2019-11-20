@@ -47,5 +47,9 @@ void testRedBlackTree()
         tree.printTree();
     }
     tree.remove(8);
+    std::cout<<"8,80 Deleted"<<std::endl;
+    tree.printTree();
+    tree.remove(4);
+    std::cout<<"4,40 Deleted"<<std::endl;
     tree.printTree();
 }

@@ -192,9 +192,9 @@ private:
             if (node->key == key) {
                 return node;
             } else if (node->key < key) {
-                node = node->left;
-            } else {
                 node = node->right;
+            } else {
+                node = node->left;
             }
         }
     }
@@ -202,7 +202,7 @@ private:
     Node<K, V>* replace(K key) {
         Node<K, V> * to_replace = this->getNodeByKey(key);
         if (to_replace->left == nullptr && to_replace->right == nullptr) {
-            return new Node<K, V>();
+            return to_replace;
         }
         Node<K, V> *min = nullptr;
         bool isToFixLeft = true;
@@ -275,6 +275,14 @@ public:
 
     void remove(K key) {
         Node<K, V> *toFix = replace(key);
+        if (toFix->left == nullptr && toFix->right == nullptr) {
+            if (toFix->parent->left == toFix) {
+                toFix->parent->left = nullptr;
+            } else {
+                toFix->parent->right = nullptr;
+            }
+            delete toFix;
+        }
         if (toFix->parent->isRed == false) {
             while (toFix->isRed == false && toFix != root) {
                 if (toFix == toFix->parent->left) {
