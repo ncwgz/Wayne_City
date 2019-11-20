@@ -2,6 +2,8 @@
 // Created by wangguozhi on 2019-11-14.
 //
 
+#include <iostream>
+
 #ifndef WAYNE_CITY_REDBLACKTREE_H
 #define WAYNE_CITY_REDBLACKTREE_H
 
@@ -10,23 +12,27 @@
 template <class K, class V>
 class Node {
 private:
+
+public:
     Node *parent = nullptr;
     Node *left = nullptr;
     Node *right = nullptr;
     bool isRed = false;
     K key;
     V value;
-public:
     Node(K key, V value) {
         this->key = key;
         this->value = value;
+    }
+    Node() {
+        this->key = NULL;
+        this->value = NULL;
     }
 };
 
 template <class K, class V>
 class RedBlackTree {
 private:
-    Node<K, V> *root = nullptr;
 
     /*
      * Left Rotate:
@@ -36,8 +42,23 @@ private:
      */
     void leftRotate(Node<K, V> *node) {
         Node<K, V> *right = node->right;
+        if (root != node) {
+            Node<K, V> *parent = node->parent;
+            parent->right = right;
+            right->parent = parent;
+        }
+
         node->right = right->left;
+        if (right->left != nullptr) {
+            node->right->parent = node;
+        }
+
         right->left = node;
+        node->parent = right;
+
+        if (root == node) {
+            root = right;
+        }
     }
 
     /*
@@ -48,24 +69,45 @@ private:
      */
     void rightRotate(Node<K, V> *node) {
         Node<K, V> *left = node->left;
+        Node<K, V> *parent = node->parent;
+
         node->left = left->right;
+        if (left->right != nullptr) {
+            node->left->parent = node;
+        }
+
+        parent->left = left;
+        left->parent = parent;
+
         left->right = node;
+        node->parent = left;
+
+        if (root == node) {
+            root = left;
+        }
     }
 
     void append(Node<K, V> *to_append, Node<K, V> *parent) {
-        if (parent->key > to_append->key) {
-            if (parent->left == nullptr) {
-                parent->left = to_append;
-                insertFix(to_append);
-            } else {
-                append(to_append, parent->left);
-            }
+        if (root == nullptr) {
+            root = to_append;
+            insertFix(to_append);
         } else {
-            if (parent->right == nullptr) {
-                parent->right = to_append;
-                insertFix(to_append);
+            if (parent->key > to_append->key) {
+                if (parent->left == nullptr) {
+                    parent->left = to_append;
+                    to_append->parent = parent;
+                    insertFix(to_append);
+                } else {
+                    append(to_append, parent->left);
+                }
             } else {
-                append(to_append, parent->right);
+                if (parent->right == nullptr) {
+                    parent->right = to_append;
+                    to_append->parent = parent;
+                    insertFix(to_append);
+                } else {
+                    append(to_append, parent->right);
+                }
             }
         }
     }
@@ -78,13 +120,14 @@ private:
 
     void insertFix(Node<K, V> *node) {
         if (node == root) {
+            node->isRed = false;
             return;
         }
         // Two continuous red nodes
         while (node->parent->isRed) {
             if (node->parent == node->parent->parent->left) {
                 // The color-change case
-                if (node->parent->parent->right->isRed) {
+                if (node->parent->parent->right != nullptr && node->parent->parent->right->isRed) {
                     node->parent->isRed = false;
                     node->parent->parent->right->isRed = false;
                     node->parent->parent->isRed = true;
@@ -103,12 +146,12 @@ private:
                 }
             } else {
                 // The color-change case
-                if (node->parent->parent->left->isRed) {
+                if (node->parent->parent->left != nullptr && node->parent->parent->left->isRed) {
                     node->parent->isRed = false;
                     node->parent->parent->left->isRed = false;
                     node->parent->parent->isRed = true;
                     node = node->parent->parent;
-                    rootRedCheck(node);
+                    rootRedCheck();
                 } else {
                     // The RL-rotate case
                     if (node->parent->left == node) {
@@ -140,10 +183,26 @@ private:
         return min;
     }
 
+    Node<K, V>* getNodeByKey(K key) {
+        Node<K, V> *node = root;
+        while (true) {
+            if (node == nullptr) {
+                return nullptr;
+            }
+            if (node->key == key) {
+                return node;
+            } else if (node->key < key) {
+                node = node->left;
+            } else {
+                node = node->right;
+            }
+        }
+    }
+
     Node<K, V>* replace(K key) {
         Node<K, V> * to_replace = this->getNodeByKey(key);
         if (to_replace->left == nullptr && to_replace->right == nullptr) {
-            return;
+            return new Node<K, V>();
         }
         Node<K, V> *min = nullptr;
         bool isToFixLeft = true;
@@ -181,26 +240,40 @@ private:
         }
     }
 
-    Node<K, V>* getNodeByKey(K key) {
-
+    void printNode(Node<K, V> *node) {
+        if (node->left != nullptr) {
+            printNode(node->left);
+        }
+        std::cout<<'('<<node->key<<','<<node->value<<')';
+        if (node->isRed) {
+            std::cout<<'R'<<std::endl;
+        } else {
+            std::cout<<'B'<<std::endl;
+        }
+        if (node->right != nullptr) {
+            printNode(node->right);
+        }
     }
 
 public:
+    Node<K, V> *root = nullptr;
+
     void insert(K key, V value) {
-        Node<K, V> node = Node<K, V>(key, value);
-        node.isRed = true;
+        Node<K, V> *node = new Node<K, V>(key, value);
+        node->isRed = true;
         append(node, root);
     }
 
-    void search(K &key) {
-        
+    V getValueByKey(K &key) {
+        Node<K, V> node = getNodeByKey(key);
+        return node.value;
     }
 
     void search(K &kLeft, K &kRight) {
 
     }
 
-    void remove(K &key) {
+    void remove(K key) {
         Node<K, V> *toFix = replace(key);
         if (toFix->parent->isRed == false) {
             while (toFix->isRed == false && toFix != root) {
@@ -252,5 +325,9 @@ public:
             }
             toFix->isRed = false;
         }
+    }
+
+    void printTree() {
+        printNode(root);
     }
 };

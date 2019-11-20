@@ -1,10 +1,12 @@
 #include <iostream>
 #include "minheap.h"
+#include "redblacktree.h"
 
 void testMinHeap();
+void testRedBlackTree();
 
 int main() {
-    testMinHeap();
+    testRedBlackTree();
     return 0;
 }
 
@@ -34,4 +36,16 @@ void testMinHeap()
     minHeap.print();
     minHeap.remove(3);
     minHeap.print();
+}
+
+void testRedBlackTree()
+{
+    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
+    for (int i = 1; i <= 8; ++i) {
+        tree.insert(i, i*10);
+        std::cout<<i<<','<<i*10<<" Inserted:"<<std::endl;
+        tree.printTree();
+    }
+    tree.remove(8);
+    tree.printTree();
 }
