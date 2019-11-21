@@ -69,15 +69,16 @@ private:
      */
     void rightRotate(Node<K, V> *node) {
         Node<K, V> *left = node->left;
-        Node<K, V> *parent = node->parent;
+        if (root != node) {
+            Node<K, V> *parent = node->parent;
+            parent->left = left;
+            left->parent = parent;
+        }
 
         node->left = left->right;
         if (left->right != nullptr) {
             node->left->parent = node;
         }
-
-        parent->left = left;
-        left->parent = parent;
 
         left->right = node;
         node->parent = left;
@@ -338,12 +339,13 @@ public:
                 }
                 // Right subtree is deficient.
                 else {
-                    toFix->parent->left = toFix->right;
-                    toFix->right->parent = toFix->parent;
+                    Node<K, V> node = toFix->right;
+                    toFix->parent->left = node;
+                    node->parent = toFix->parent;
                     delete(toFix);
                     // Right subtree is red, turn it into black.
-                    if (toFix->right->isRed) {
-                        toFix->right->isRed = false;
+                    if (node->isRed) {
+                        node->isRed = false;
                     }
                     // The deficient subtree is black.
                     else {
@@ -353,23 +355,53 @@ public:
             }
             // Node to fix is right of its parent.
             else {
+
+                Node<K, V> *cousin = toFix->parent->left;
                 // Left subtree is deficient.
                 if (toFix->left != nullptr) {
-                    Node<K, V> *cousin = toFix->parent->left;
-                    toFix->parent->right = toFix->left;
-                    toFix->left->parent = toFix->parent;
+                    Node<K, V> node = toFix->left;
+                    toFix->parent->right = node;
+                    node->parent = toFix->parent;
                     delete(toFix);
                     // Left subtree is red, turn it into black.
-                    if (toFix->left->isRed) {
-                        toFix->left->isRed = false;
+                    if (node->isRed) {
+                        node->isRed = false;
                     }
                     // The deficient subtree is black.
                     else {
-                        if ((cousin->left == nullptr || !cousin->left->isRed)
-                        && (cousin->right == nullptr || !cousin->right->isRed)) {
-                            cousin->isRed = true;
+                        if (!cousin->isRed) {
+                            if ((cousin->left == nullptr || !cousin->left->isRed)
+                                && (cousin->right == nullptr || !cousin->right->isRed)) {
+                                cousin->isRed = true;
+                                if (node.parent->isRed) {
+                                    node.parent->isRed = false;
+                                    cousin->isRed = true;
+                                }
+                            } else if (cousin->right != nullptr && cousin->right->isRed) {
+                                leftRotate(cousin);
+                                rightRotate(node.parent);
+                                cousin->isRed = node.parent->isRed;
+                                node.parent->isRed = false;
+                            } else if (cousin->left != nullptr && cousin->left->isRed) {
+                                rightRotate(node.parent);
+                                cousin->left->isRed = false;
+                                cousin->isRed = node.parent->isRed;
+                                node.parent->isRed = false;
+                            }
                         }
-                        if (())
+                        else {
+                            Node<K, V> *cRight = cousin->right;
+                                if (cRight == nullptr) {
+                                    rightRotate(node.parent);
+                                    cousin->isRed = false;
+                                }
+                                else if ((cRight->left == nullptr || !cRight->left->isRed)
+                                || (cRight->right == nullptr || !cRight->right->isRed)) {
+                                    rightRotate(node.parent);
+                                    cousin->isRed = false;
+                                    cRight->isRed = true;
+                                } else if ()
+                        }
                     }
                 }
                 // Right subtree is deficient.
