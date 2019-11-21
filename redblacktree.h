@@ -9,7 +9,7 @@
 
 #endif //WAYNE_CITY_REDBLACKTREE_H
 
-template <class K, class V>
+template<class K, class V>
 class Node {
 private:
 
@@ -20,17 +20,19 @@ public:
     bool isRed = false;
     K key;
     V value;
+
     Node(K key, V value) {
         this->key = key;
         this->value = value;
     }
+
     Node() {
         this->key = NULL;
         this->value = NULL;
     }
 };
 
-template <class K, class V>
+template<class K, class V>
 class RedBlackTree {
 private:
 
@@ -125,7 +127,7 @@ private:
             return;
         }
         // Two continuous red nodes
-        while (node->parent->isRed) {
+        while (node != nullptr && node->parent->isRed) {
             if (node->parent == node->parent->parent->left) {
                 // The color-change case
                 if (node->parent->parent->right != nullptr && node->parent->parent->right->isRed) {
@@ -168,23 +170,23 @@ private:
         }
     }
 
-    Node<K, V>* getRightMin(Node<K, V> *node) {
-        Node<K, V>* min = node->right;
+    Node<K, V> *getRightMin(Node<K, V> *node) {
+        Node<K, V> *min = node->right;
         while (min->left != nullptr) {
             min = min->left;
         }
         return min;
     }
 
-    Node<K, V>* getLeftMin(Node<K, V> *node) {
-        Node<K, V>* min = node->left;
+    Node<K, V> *getLeftMin(Node<K, V> *node) {
+        Node<K, V> *min = node->left;
         while (min->right != nullptr) {
             min = min->right;
         }
         return min;
     }
 
-    Node<K, V>* getNodeByKey(K key) {
+    Node<K, V> *getNodeByKey(K key) {
         Node<K, V> *node = root;
         while (true) {
             if (node == nullptr) {
@@ -200,8 +202,8 @@ private:
         }
     }
 
-    Node<K, V>* replace(K key) {
-        Node<K, V> * to_replace = this->getNodeByKey(key);
+    Node<K, V> *replace(K key) {
+        Node<K, V> *to_replace = this->getNodeByKey(key);
         if (to_replace->left == nullptr && to_replace->right == nullptr) {
             return to_replace;
         }
@@ -210,19 +212,30 @@ private:
         if (to_replace->left == nullptr) {
             min = getRightMin(to_replace);
             min->parent->left = to_replace;
-            isToFixLeft = false;
         } else {
             min = getLeftMin(to_replace);
             min->parent->right = to_replace;
-            isToFixLeft = true;
         }
         bool originalNodeColor = to_replace->isRed;
         bool originalMinColor = min->isRed;
 
-        min->left = to_replace->left;
-        min->right = to_replace->right;
-        to_replace->left = nullptr;
-        to_replace->right = nullptr;
+        if (to_replace->left == min) {
+            min->left = to_replace;
+        } else {
+            min->left = to_replace->left;
+        }
+        if (to_replace->right == min) {
+            min->right = to_replace;
+        } else {
+            min->right = to_replace->right;
+        }
+        to_replace->left = min->left;
+        to_replace->right = min->right;
+        if (min->parent->left == min) {
+            min->parent->left = to_replace;
+        } else {
+            min->parent->right = to_replace;
+        }
         if (this->root == to_replace) {
             root = min;
         } else if (to_replace->parent->left == to_replace) {
@@ -234,22 +247,23 @@ private:
         to_replace->isRed = originalMinColor;
         min->isRed = originalNodeColor;
 
-        if (isToFixLeft) {
-            return min->left;
-        } else {
-            return min;
-        }
+//        if (isToFixLeft) {
+//            return min->left;
+//        } else {
+//            return min;
+//        }
+        return min;
     }
 
     void printNode(Node<K, V> *node) {
         if (node->left != nullptr) {
             printNode(node->left);
         }
-        std::cout<<'('<<node->key<<','<<node->value<<')';
+        std::cout << '(' << node->key << ',' << node->value << ')';
         if (node->isRed) {
-            std::cout<<'R'<<std::endl;
+            std::cout << 'R' << std::endl;
         } else {
-            std::cout<<'B'<<std::endl;
+            std::cout << 'B' << std::endl;
         }
         if (node->right != nullptr) {
             printNode(node->right);
@@ -267,7 +281,7 @@ public:
 
     V getValueByKey(K &key) {
         Node<K, V> node = getNodeByKey(key);
-        return node.value;
+        return node->value;
     }
 
     void search(K &kLeft, K &kRight) {
@@ -325,98 +339,294 @@ public:
                 Node<K, V> *cousin = toFix->parent->right;
                 // Left subtree is deficient.
                 if (toFix->left != nullptr) {
+                    Node<K, V> *node = toFix->left;
                     toFix->parent->left = toFix->left;
-                    toFix->left->parent = toFix->parent;
-                    delete(toFix);
+                    if (node != nullptr) {
+                        toFix->left->parent = toFix->parent;
+                    }
+                    delete (toFix);
                     // Left subtree is red, turn it into black.
-                    if (toFix->left->isRed) {
-                        toFix->left->isRed = false;
-                    }
-                    // The deficient subtree is black.
-                    else {
-
-                    }
-                }
-                // Right subtree is deficient.
-                else {
-                    Node<K, V> node = toFix->right;
-                    toFix->parent->left = node;
-                    node->parent = toFix->parent;
-                    delete(toFix);
-                    // Right subtree is red, turn it into black.
-                    if (node->isRed) {
+                    if (node != nullptr && node->isRed) {
                         node->isRed = false;
                     }
                     // The deficient subtree is black.
                     else {
-
+                        // Lb0, Lb1, Lb2
+                        if (!cousin->isRed) {
+                            // Rb0
+                            if ((cousin->right == nullptr || !cousin->right->isRed)
+                                && (cousin->left == nullptr || !cousin->left->isRed)) {
+                                cousin->isRed = true;
+                                if (cousin->parent->isRed) {
+                                    cousin->parent->isRed = false;
+                                    cousin->isRed = true;
+                                }
+                            }
+                            // Rb1-left
+                            else if (cousin->left != nullptr && cousin->left->isRed) {
+                                rightRotate(cousin);
+                                leftRotate(node->parent);
+                                cousin->isRed = node->parent->isRed;
+                                node->parent->isRed = false;
+                            }
+                            // Rb1-right & Rb2
+                            else if (cousin->right != nullptr && cousin->right->isRed) {
+                                leftRotate(node->parent);
+                                cousin->right->isRed = false;
+                                cousin->isRed = node->parent->isRed;
+                                node->parent->isRed = false;
+                            }
+                        }
+                        // Rr(0), Rr(1), Rr(2)
+                        else {
+                            Node<K, V> *cLeft = cousin->left;
+                            // Rr(0) No subtrees
+                            if (cLeft == nullptr) {
+                                leftRotate(node->parent);
+                                cousin->isRed = false;
+                            }
+                            // Rr(0) Subtree exists
+                            else if ((cLeft->right == nullptr || !cLeft->right->isRed)
+                                     && (cLeft->left == nullptr || !cLeft->left->isRed)) {
+                                leftRotate(node->parent);
+                                cousin->isRed = false;
+                                cLeft->isRed = true;
+                            }
+                            // Rr(1) Red is on the right
+                            else if (cLeft->right != nullptr && cLeft->right->isRed &&
+                                     (cLeft->left == nullptr || !cLeft->left->isRed)) {
+                                rightRotate(cousin);
+                                leftRotate(node->parent);
+                                cLeft->right->isRed = false;
+                            }
+                            // Rr(1) Red is on the left & Rr(2)
+                            else {
+                                rightRotate(cLeft);
+                                rightRotate(cousin);
+                                leftRotate(node->parent);
+                                cLeft->left->isRed = false;
+                            }
+                        }
+                    }
+                }
+                // Right subtree is deficient.
+                else {
+                    Node<K, V> *node = toFix->right;
+                    toFix->parent->left = node;
+                    if (node != nullptr) {
+                        node->parent = toFix->parent;
+                    }
+                    delete (toFix);
+                    // Right subtree is red, turn it into black.
+                    if (node != nullptr && node->isRed) {
+                        node->isRed = false;
+                    }
+                        // The deficient subtree is black.
+                    else {
+                        // Lb0, Lb1, Lb2
+                        if (!cousin->isRed) {
+                            // Rb0
+                            if ((cousin->right == nullptr || !cousin->right->isRed)
+                                && (cousin->left == nullptr || !cousin->left->isRed)) {
+                                cousin->isRed = true;
+                                if (cousin->parent->isRed) {
+                                    cousin->parent->isRed = false;
+                                    cousin->isRed = true;
+                                }
+                            }
+                            // Rb1-left
+                            else if (cousin->left != nullptr && cousin->left->isRed) {
+                                rightRotate(cousin);
+                                leftRotate(node->parent);
+                                cousin->isRed = node->parent->isRed;
+                                node->parent->isRed = false;
+                            }
+                            // Rb1-right & Rb2
+                            else if (cousin->right != nullptr && cousin->right->isRed) {
+                                leftRotate(node->parent);
+                                cousin->right->isRed = false;
+                                cousin->isRed = node->parent->isRed;
+                                node->parent->isRed = false;
+                            }
+                        }
+                        // Rr(0), Rr(1), Rr(2)
+                        else {
+                            Node<K, V> *cLeft = cousin->left;
+                            // Rr(0) No subtrees
+                            if (cLeft == nullptr) {
+                                leftRotate(node->parent);
+                                cousin->isRed = false;
+                            }
+                            // Rr(0) Subtree exists
+                            else if ((cLeft->right == nullptr || !cLeft->right->isRed)
+                                     && (cLeft->left == nullptr || !cLeft->left->isRed)) {
+                                leftRotate(node->parent);
+                                cousin->isRed = false;
+                                cLeft->isRed = true;
+                            }
+                            // Rr(1) Red is on the right
+                            else if (cLeft->right != nullptr && cLeft->right->isRed &&
+                                     (cLeft->left == nullptr || !cLeft->left->isRed)) {
+                                rightRotate(cousin);
+                                leftRotate(node->parent);
+                                cLeft->right->isRed = false;
+                            }
+                            // Rr(1) Red is on the left & Rr(2)
+                            else {
+                                rightRotate(cLeft);
+                                rightRotate(cousin);
+                                leftRotate(node->parent);
+                                cLeft->left->isRed = false;
+                            }
+                        }
                     }
                 }
             }
             // Node to fix is right of its parent.
             else {
-
                 Node<K, V> *cousin = toFix->parent->left;
                 // Left subtree is deficient.
                 if (toFix->left != nullptr) {
-                    Node<K, V> node = toFix->left;
+                    Node<K, V> *node = toFix->left;
                     toFix->parent->right = node;
-                    node->parent = toFix->parent;
-                    delete(toFix);
+                    if (node != nullptr) {
+                        node->parent = toFix->parent;
+                    }
+                    delete (toFix);
                     // Left subtree is red, turn it into black.
-                    if (node->isRed) {
+                    if (node != nullptr && node->isRed) {
                         node->isRed = false;
                     }
                     // The deficient subtree is black.
                     else {
+                        // Rb0, Rb1, Rb2
                         if (!cousin->isRed) {
+                            // Rb0
                             if ((cousin->left == nullptr || !cousin->left->isRed)
                                 && (cousin->right == nullptr || !cousin->right->isRed)) {
                                 cousin->isRed = true;
-                                if (node.parent->isRed) {
-                                    node.parent->isRed = false;
+                                if (cousin->parent->isRed) {
+                                    cousin->parent->isRed = false;
                                     cousin->isRed = true;
                                 }
-                            } else if (cousin->right != nullptr && cousin->right->isRed) {
+                            }
+                            // Rb1-Right
+                            else if (cousin->right != nullptr && cousin->right->isRed) {
                                 leftRotate(cousin);
-                                rightRotate(node.parent);
-                                cousin->isRed = node.parent->isRed;
-                                node.parent->isRed = false;
-                            } else if (cousin->left != nullptr && cousin->left->isRed) {
-                                rightRotate(node.parent);
+                                rightRotate(node->parent);
+                                cousin->isRed = node->parent->isRed;
+                                node->parent->isRed = false;
+                            }
+                            // Rb1-Left & Rb2
+                            else if (cousin->left != nullptr && cousin->left->isRed) {
+                                rightRotate(node->parent);
                                 cousin->left->isRed = false;
-                                cousin->isRed = node.parent->isRed;
-                                node.parent->isRed = false;
+                                cousin->isRed = node->parent->isRed;
+                                node->parent->isRed = false;
                             }
                         }
+                            // Rr(0), Rr(1), Rr(2)
                         else {
                             Node<K, V> *cRight = cousin->right;
-                                if (cRight == nullptr) {
-                                    rightRotate(node.parent);
-                                    cousin->isRed = false;
-                                }
-                                else if ((cRight->left == nullptr || !cRight->left->isRed)
-                                || (cRight->right == nullptr || !cRight->right->isRed)) {
-                                    rightRotate(node.parent);
-                                    cousin->isRed = false;
-                                    cRight->isRed = true;
-                                } else if ()
+                            // Rr(0) No subtrees
+                            if (cRight == nullptr) {
+                                rightRotate(node->parent);
+                                cousin->isRed = false;
+                            }
+                            // Rr(0) Subtree exists
+                            else if ((cRight->left == nullptr || !cRight->left->isRed)
+                                     && (cRight->right == nullptr || !cRight->right->isRed)) {
+                                rightRotate(node->parent);
+                                cousin->isRed = false;
+                                cRight->isRed = true;
+                            }
+                            // Rr(1) Red is on the left
+                            else if (cRight->left != nullptr && cRight->left->isRed &&
+                                     (cRight->right == nullptr || !cRight->right->isRed)) {
+                                leftRotate(cousin);
+                                rightRotate(node->parent);
+                                cRight->left->isRed = false;
+                            }
+                            // Rr(1) Red is on the right & Rr(2)
+                            else {
+                                leftRotate(cRight);
+                                leftRotate(cousin);
+                                rightRotate(node->parent);
+                                cRight->right->isRed = false;
+                            }
                         }
                     }
                 }
                 // Right subtree is deficient.
                 else {
-                    Node<K, V> node = toFix->right;
+                    Node<K, V> *node = toFix->right;
                     toFix->parent->right = node;
-                    node->parent = toFix->parent;
-                    delete(toFix);
+                    if (node != nullptr) {
+                        node->parent = toFix->parent;
+                    }
+                    delete (toFix);
                     // Right subtree is red, turn it into black.
-                    if (node->isRed) {
+                    if (node != nullptr && node->isRed) {
                         node->isRed = false;
                     }
-                    // The deficient subtree is black.
+                        // The deficient subtree is black.
                     else {
-
+                        // Rb0, Rb1, Rb2
+                        if (!cousin->isRed) {
+                            // Rb0
+                            if ((cousin->left == nullptr || !cousin->left->isRed)
+                                && (cousin->right == nullptr || !cousin->right->isRed)) {
+                                cousin->isRed = true;
+                                if (cousin->parent->isRed) {
+                                    cousin->parent->isRed = false;
+                                    cousin->isRed = true;
+                                }
+                            }
+                                // Rb1-Right
+                            else if (cousin->right != nullptr && cousin->right->isRed) {
+                                leftRotate(cousin);
+                                rightRotate(node->parent);
+                                cousin->isRed = node->parent->isRed;
+                                node->parent->isRed = false;
+                            }
+                                // Rb1-Left & Rb2
+                            else if (cousin->left != nullptr && cousin->left->isRed) {
+                                rightRotate(node->parent);
+                                cousin->left->isRed = false;
+                                cousin->isRed = node->parent->isRed;
+                                node->parent->isRed = false;
+                            }
+                        }
+                            // Rr(0), Rr(1), Rr(2)
+                        else {
+                            Node<K, V> *cRight = cousin->right;
+                            // Rr(0) No subtrees
+                            if (cRight == nullptr) {
+                                rightRotate(node->parent);
+                                cousin->isRed = false;
+                            }
+                                // Rr(0) Subtree exists
+                            else if ((cRight->left == nullptr || !cRight->left->isRed)
+                                     && (cRight->right == nullptr || !cRight->right->isRed)) {
+                                rightRotate(node->parent);
+                                cousin->isRed = false;
+                                cRight->isRed = true;
+                            }
+                                // Rr(1) Red is on the left
+                            else if (cRight->left != nullptr && cRight->left->isRed &&
+                                     (cRight->right == nullptr || !cRight->right->isRed)) {
+                                leftRotate(cousin);
+                                rightRotate(node->parent);
+                                cRight->left->isRed = false;
+                            }
+                                // Rr(1) Red is on the right & Rr(2)
+                            else {
+                                leftRotate(cRight);
+                                leftRotate(cousin);
+                                rightRotate(node->parent);
+                                cRight->right->isRed = false;
+                            }
+                        }
                     }
                 }
             }
