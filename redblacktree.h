@@ -275,63 +275,119 @@ public:
 
     void remove(K key) {
         Node<K, V> *toFix = replace(key);
-        if (toFix->left == nullptr && toFix->right == nullptr) {
-            if (toFix->parent->left == toFix) {
-                toFix->parent->left = nullptr;
+        // Node to fix is root.
+        if (root == toFix) {
+            if (toFix->left != nullptr) {
+                root = toFix->left;
+            } else if (toFix->right != nullptr) {
+                root = toFix->right;
             } else {
-                toFix->parent->right = nullptr;
+                root = nullptr;
             }
             delete toFix;
+            rootRedCheck();
         }
-        if (toFix->parent->isRed == false) {
-            while (toFix->isRed == false && toFix != root) {
+        // No rebalancing needed.
+        else if (toFix->isRed) {
+            // No subtrees, just delete.
+            if (toFix->left == nullptr && toFix->right == nullptr) {
                 if (toFix == toFix->parent->left) {
-                    Node<K, V> *cousin = toFix->parent->right;
-                    if (cousin->isRed) {
-                        cousin->isRed = false;
-                        toFix->parent->isRed = true;
-                        leftRotate(toFix->parent);
-                        cousin = toFix->parent->right;
-                    }
-                    if (cousin->left->isRed == false && cousin->right->isRed == false) {
-                        cousin->isRed = true;
-                        toFix = toFix->parent;
-                    } else if (cousin->right->isRed == false) {
-                        cousin->left->isRed = false;
-                        cousin->isRed = true;
-                        rightRotate(cousin);
-                        cousin = toFix->parent->right;
-                    }
-                    cousin->isRed = toFix->parent->isRed;
-                    toFix->parent->isRed = false;
-                    cousin->right->isRed = false;
-                    leftRotate(toFix->parent);
-                    toFix = root;
+                    toFix->parent->left = nullptr;
                 } else {
-                    Node<K, V> *cousin = toFix->parent->left;
-                    if (cousin->isRed) {
-                        cousin->isRed = false;
-                        toFix->parent->isRed = true;
-                        rightRotate(toFix->parent);
-                        cousin = toFix->parent->left;
-                    }
-                    if (cousin->right->isRed == false && cousin->left->isRed == false) {
-                        cousin->isRed = true;
-                        toFix = toFix->parent;
-                    } else if (cousin->left->isRed == false) {
-                        cousin->right->isRed = false;
-                        cousin->isRed = true;
-                        leftRotate(cousin);
-                        cousin = toFix->parent->left;
-                    }
-                    cousin->isRed = toFix->parent->isRed;
-                    toFix->parent->isRed = false;
-                    cousin->left->isRed = false;
-                    rightRotate(toFix->parent);
-                    toFix = root;
+                    toFix->parent->right = nullptr;
                 }
             }
-            toFix->isRed = false;
+            // A left subtree exists.
+            else if (toFix->left != nullptr) {
+                if (toFix == toFix->parent->left) {
+                    toFix->parent->left = toFix->left;
+                } else {
+                    toFix->parent->right = toFix->left;
+                }
+                toFix->left->parent = toFix->parent;
+            }
+            // A right subtree exists.
+            else if (toFix->right != nullptr) {
+                if (toFix == toFix->parent->left) {
+                    toFix->parent->left = toFix->right;
+                } else {
+                    toFix->parent->right = toFix->right;
+                }
+                toFix->right->parent = toFix->parent;
+            }
+            delete (toFix);
+        }
+        // Node to fix is black, need rebalancing.
+        else {
+            // Node to fix is the left of its parent.
+            if (toFix == toFix->parent->left) {
+                Node<K, V> *cousin = toFix->parent->right;
+                // Left subtree is deficient.
+                if (toFix->left != nullptr) {
+                    toFix->parent->left = toFix->left;
+                    toFix->left->parent = toFix->parent;
+                    delete(toFix);
+                    // Left subtree is red, turn it into black.
+                    if (toFix->left->isRed) {
+                        toFix->left->isRed = false;
+                    }
+                    // The deficient subtree is black.
+                    else {
+
+                    }
+                }
+                // Right subtree is deficient.
+                else {
+                    toFix->parent->left = toFix->right;
+                    toFix->right->parent = toFix->parent;
+                    delete(toFix);
+                    // Right subtree is red, turn it into black.
+                    if (toFix->right->isRed) {
+                        toFix->right->isRed = false;
+                    }
+                    // The deficient subtree is black.
+                    else {
+
+                    }
+                }
+            }
+            // Node to fix is right of its parent.
+            else {
+                // Left subtree is deficient.
+                if (toFix->left != nullptr) {
+                    Node<K, V> *cousin = toFix->parent->left;
+                    toFix->parent->right = toFix->left;
+                    toFix->left->parent = toFix->parent;
+                    delete(toFix);
+                    // Left subtree is red, turn it into black.
+                    if (toFix->left->isRed) {
+                        toFix->left->isRed = false;
+                    }
+                    // The deficient subtree is black.
+                    else {
+                        if ((cousin->left == nullptr || !cousin->left->isRed)
+                        && (cousin->right == nullptr || !cousin->right->isRed)) {
+                            cousin->isRed = true;
+                        }
+                        if (())
+                    }
+                }
+                // Right subtree is deficient.
+                else {
+                    Node<K, V> node = toFix->right;
+                    toFix->parent->right = node;
+                    node->parent = toFix->parent;
+                    delete(toFix);
+                    // Right subtree is red, turn it into black.
+                    if (node->isRed) {
+                        node->isRed = false;
+                    }
+                    // The deficient subtree is black.
+                    else {
+
+                    }
+                }
+            }
         }
     }
 
