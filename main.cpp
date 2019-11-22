@@ -41,15 +41,19 @@ void testMinHeap()
 void testRedBlackTree()
 {
     RedBlackTree<int, int> tree = RedBlackTree<int, int>();
-    for (int i = 1; i <= 8; ++i) {
-        tree.insert(i, i*10);
-        std::cout<<i<<','<<i*10<<" Inserted:"<<std::endl;
-        tree.printTree();
-    }
-    tree.remove(8);
-    std::cout<<"8,80 Deleted"<<std::endl;
-    tree.printTree();
-    tree.remove(2);
-    std::cout<<"2 Deleted"<<std::endl;
-    tree.printTree();
+//    for (int i = 1; i <= 10000; ++i) {
+//        tree.insert(i, i*10);
+//        std::cout<<i<<','<<i*10<<" Inserted:"<<std::endl;
+//    }
+//    int *to_remove = new int[1000]();
+//    for (int k = 0; k < 1000; ++k) {
+//        to_remove[k] = k * 2 + 1;
+//    }
+//    for (int j = 0; j < 1000; ++j) {
+//        tree.remove(to_remove[j]);
+//        std::cout<<to_remove[j]<<" removed: ======================================="<<std::endl;
+//    }
+    tree.insert(0, 100);
+    tree.insert(0, 101);
+    std::cout<<"???"<<std::endl;
 }
