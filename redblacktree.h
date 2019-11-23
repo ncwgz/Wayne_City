@@ -32,15 +32,15 @@ class RedBlackTree {
 private:
     Node<K, V> *root = nullptr;
 
-    Node<K, V>* getNodeByKey(K key, Node<K, V> *parent) {
-        while( parent != nullptr && parent->key != key) {
-            if (key < parent->key) {
-                parent = parent->left;
+    Node<K, V>* getNodeByKey(K key, Node<K, V> *node) {
+        while( node != nullptr && node->key != key) {
+            if (key < node->key) {
+                node = node->left;
             } else {
-                parent = parent->right;
+                node = node->right;
             }
         }
-        return parent;
+        return node;
     }
 
     Node<K, V>* min(Node<K, V> *tree) {
@@ -336,7 +336,11 @@ public:
 
     V getValueByKey(K key) {
         Node<K, V> *node = getNodeByKey(key, root);
-        return node->value;
+        if (node != nullptr) {
+            return node->value;
+        } else {
+            return nullptr;
+        }
     }
 
     void insert(K key, V value) {
@@ -347,5 +351,10 @@ public:
     void remove(K key) {
         Node<K, V> *node = getNodeByKey(key, root);
         remove(node);
+    }
+
+    void update(K key, V value) {
+        Node<K, V> *node = getNodeByKey(key, root);
+        node->value = value;
     }
 };

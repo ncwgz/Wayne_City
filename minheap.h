@@ -1,5 +1,5 @@
 //
-// Created by wangguozhi on 2019-11-14.
+// Created by wangguozhi on 2019-11-21.
 //
 
 #include <algorithm>
@@ -18,7 +18,7 @@ private:
      * Because if index starts from 0, the bitwise operations
      * below will be a little more complex.
     */
-    T *HEAP_ARRAY = new int[2000];
+    T** HEAP_ARRAY = new T*[2000];
     // Initial length is 0.
     int LENGTH = 0;
 
@@ -48,7 +48,7 @@ private:
             return 0;
         }
         int parent = getParentIndex(index);
-        if (HEAP_ARRAY[index] < HEAP_ARRAY[parent]) {
+        if (*HEAP_ARRAY[index] < *HEAP_ARRAY[parent]) {
             std::swap(HEAP_ARRAY[index], HEAP_ARRAY[parent]);
             heapifyUp(parent);
         } else {
@@ -64,15 +64,28 @@ private:
             if (left > LENGTH) {
                 return index;
             } else {
-                if (HEAP_ARRAY[left] < HEAP_ARRAY[index]) {
+                if (*HEAP_ARRAY[left] < *HEAP_ARRAY[index]) {
                     std::swap(HEAP_ARRAY[left], HEAP_ARRAY[index]);
+                    return left;
                 } else {
                     return index;
                 }
             }
         }
-        if (min(HEAP_ARRAY[left], HEAP_ARRAY[right]) < HEAP_ARRAY[index]) {
-            if (HEAP_ARRAY[right] < HEAP_ARRAY[left]) {
+        if (left > LENGTH) {
+            if (right > LENGTH) {
+                return index;
+            } else {
+                if (*HEAP_ARRAY[right] < *HEAP_ARRAY[index]) {
+                    std::swap(HEAP_ARRAY[right], HEAP_ARRAY[index]);
+                    return right;
+                } else {
+                    return index;
+                }
+            }
+        }
+        if (min(*HEAP_ARRAY[left], *HEAP_ARRAY[right]) < *HEAP_ARRAY[index]) {
+            if (*HEAP_ARRAY[right] < *HEAP_ARRAY[left]) {
                 std::swap(HEAP_ARRAY[right], HEAP_ARRAY[index]);
                 heapifyDown(right);
             } else {
@@ -85,21 +98,34 @@ private:
     }
 
 public:
-    void insert(T &t) {
+    void insert(T *&t) {
         HEAP_ARRAY[LENGTH + 1] = t;
         LENGTH++;
         heapifyUp(LENGTH);
     }
 
-    void increase(int to_increase, int delta) {
-        HEAP_ARRAY[to_increase] = HEAP_ARRAY[to_increase] + delta;
-        heapifyDown(to_increase);
+    int increase(int to_increase, int delta) {
+        *HEAP_ARRAY[to_increase] = *HEAP_ARRAY[to_increase] + delta;
+        return heapifyDown(to_increase);
     }
 
     void remove(int to_remove) {
         std::swap(HEAP_ARRAY[to_remove], HEAP_ARRAY[LENGTH]);
         LENGTH--;
         heapifyDown(to_remove);
+    }
+
+    void removeElement(T t) {
+        int toRemove = getIndexByElement(t);
+        remove(toRemove);
+    }
+
+    int getIndexByElement(T t) {
+        for (int i = 1; i <= LENGTH; ++i) {
+            if (*HEAP_ARRAY[i] == t) {
+                return i;
+            }
+        }
     }
 
     void removeMin() {
@@ -110,8 +136,20 @@ public:
 
     void print() {
         for (int i = 1; i <= LENGTH; ++i) {
-            std::cout << HEAP_ARRAY[i] << ',';
+            std::cout << *HEAP_ARRAY[i] << ',';
         }
         std::cout << std::endl;
+    }
+
+    int getLength() {
+        return this->LENGTH;
+    }
+
+    T getElement(int index) {
+        return *HEAP_ARRAY[index];
+    }
+
+    T* getElementPointer(int index) {
+        return this->HEAP_ARRAY[index];
     }
 };
