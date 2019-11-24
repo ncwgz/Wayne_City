@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
         if (currentNum >= 0) {
             int nowBuildingIndex = heap->getIndexByElement(*rbtree->getValueByKey(currentNum));
             int newIndex = heap->increase(nowBuildingIndex, 1);
-            rbtree->update(currentNum, heap->getElementPointer(newIndex));
+//            rbtree->update(currentNum, heap->getElementPointer(newIndex));
             builtDays ++;
         }
         for (Command cmd : cmds) {
