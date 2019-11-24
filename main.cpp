@@ -62,7 +62,13 @@ int main(int argc, char* argv[]) {
                             cout<<"(0,0,0)"<<endl;
                         }
                     } else {
-                        // Print range
+                        vector<Building*> v;
+                        v = rbtree->getValuesByRange(cmd.arg1, cmd.arg2);
+                        for (int i = 0; i < v.size() - 1; ++i) {
+                            cout<<"("<<v[i]->buildingNum<<","<<v[i]->executedTime<<","<<v[i]->totalTime<<")"<<",";
+                        }
+                        int last = v.size()-1;
+                        cout<<"("<<v[last]->buildingNum<<","<<v[last]->executedTime<<","<<v[last]->totalTime<<")"<<endl;
                     }
                 } else {
                     // Illegal
