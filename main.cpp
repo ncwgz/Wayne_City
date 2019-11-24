@@ -4,7 +4,7 @@
 #include <string>
 #include <cstring>
 #include "minheap.h"
-#include "redblacktree.h"
+#include "myredblacktree.h"
 #include "building.h"
 
 using namespace std;
@@ -18,8 +18,14 @@ typedef struct Command {
 
 void testMinHeap();
 void testRedBlackTree();
+void test2();
 vector<Command> getCommands(char* filename);
 vector<string> split(string);
+
+//int main() {
+//    test2();
+//    return 0;
+//}
 
 int main(int argc, char* argv[]) {
     char *filename = new char[100];
@@ -156,50 +162,63 @@ vector<Command> getCommands(char* filename) {
     return commands;
 }
 
-void testMinHeap()
-{
-    MinHeap<int> minHeap = MinHeap<int>();
-    int arr[11] = {
-            37, 58, 91, 12, 43, 5, 84, 68, 99, 77, 29
-    };
-//    for (int i = 0; i < 11; ++i) {
-//        minHeap.insert(arr[i]);
-//        minHeap.print();
-//    }
-    minHeap.increase(1, 100);
-    minHeap.print();
-    minHeap.removeMin();
-    minHeap.print();
-    minHeap.remove(4);
-    minHeap.print();
-    minHeap.removeMin();
-    minHeap.print();
-    minHeap.removeMin();
-    minHeap.print();
-    minHeap.removeMin();
-    minHeap.print();
-    minHeap.remove(2);
-    minHeap.print();
-    minHeap.remove(3);
-    minHeap.print();
-}
-
 void testRedBlackTree()
 {
+    cout<<"==============Testing red black tree=============="<<endl;
+    // Initialize a red black tree with numbers from 1 to 2049
     RedBlackTree<int, int> tree = RedBlackTree<int, int>();
-//    for (int i = 1; i <= 10000; ++i) {
-//        tree.insert(i, i*10);
-//        std::cout<<i<<','<<i*10<<" Inserted:"<<std::endl;
-//    }
-//    int *to_remove = new int[1000]();
-//    for (int k = 0; k < 1000; ++k) {
-//        to_remove[k] = k * 2 + 1;
-//    }
-//    for (int j = 0; j < 1000; ++j) {
-//        tree.remove(to_remove[j]);
-//        std::cout<<to_remove[j]<<" removed: ======================================="<<std::endl;
-//    }
-    tree.insert(0, 100);
-    tree.insert(0, 101);
-    std::cout<<"???"<<std::endl;
+    for (int i = 1; i <= 2049; ++i) {
+        tree.insert(i, i*10);
+    }
+
+    cout<<"Expecting: 40"<<endl;
+    cout<<tree.getValueByKey(4)<<endl;
+
+    cout<<"Expecting: 5120"<<endl;
+    cout<<tree.getValueByKey(512)<<endl;
+
+    cout<<"Expecting: 10"<<endl;
+    cout<<tree.getValueByKey(1)<<endl;
+
+    cout<<"Expecting: 0"<<endl;
+    cout<<tree.getValueByKey(-5)<<endl;
+
+    cout<<"Expecting: 0"<<endl;
+    cout<<tree.getValueByKey(3000)<<endl;
+
+    vector<int> v;
+
+    cout<<"Expecting: 10200, 10210, 10220, 10230, 10240, 10250, 10260"<<endl;
+    v = tree.getValuesByRange(1020, 1026);
+    for (auto x : v) {
+        cout<<x<<" ";
+    }
+    cout<<endl;
+
+    cout<<"Expecting: 0"<<endl;
+    v = tree.getValuesByRange(1026, 1020);
+    for (auto x : v) {
+        cout<<x<<" ";
+    }
+    cout<<endl;
+
+    cout<<"Expecting: 0"<<endl;
+    v = tree.getValuesByRange(2222, 3333);
+    for (auto x : v) {
+        cout<<x<<" ";
+    }
+    cout<<endl;
+
+    cout<<"=====================Test end====================="<<endl;
+}
+
+void test2() {
+    cout<<"==============Testing red black tree=============="<<endl;
+    // Initialize a red black tree with numbers from 1 to 2049
+    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
+    for (int i = 1; i <= 3; ++i) {
+        tree.insert(i, i*10);
+    }
+    tree.remove(2);
+    cout<<"=====================Test end====================="<<endl;
 }

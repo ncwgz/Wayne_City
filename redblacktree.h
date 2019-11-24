@@ -13,7 +13,7 @@
 template <class K, class V>
 class Node {
 public:
-    bool isRed = false;
+    bool isRed = true;
     Node<K, V> *left = nullptr;
     Node<K, V> *right = nullptr;
     Node<K ,V> *parent = nullptr;
@@ -23,7 +23,6 @@ public:
     Node(K key, V value) {
         this->key = key;
         this->value = value;
-        this->isRed = true;
     }
 };
 
@@ -126,7 +125,8 @@ private:
 
     void insertFix(Node<K, V> *node) {
         Node<K, V> *parent, *grandparent;
-        while ((parent == node->parent) && parent->isRed) {
+        parent = node->parent;
+        while (parent != nullptr && parent->isRed) {
             grandparent = parent->parent;
             if (parent == grandparent->left) {
                 Node<K, V> *uncle = grandparent->right;
@@ -356,5 +356,24 @@ public:
     void update(K key, V value) {
         Node<K, V> *node = getNodeByKey(key, root);
         node->value = value;
+    }
+
+    std::vector<V> getRange(K min, K max) {
+        std::vector<V> toReturn;
+        Node<K, V> *node = root;
+        while (node != nullptr) {
+            if (node->key > min && node->left != nullptr) {
+                node = node->left;
+                continue;
+            }
+            if (node->key > min && node->key < max) {
+                toReturn.push_back(node->value);
+            }
+            if (node->key < max && node->right != nullptr) {
+                node = node->right;
+                continue;
+            }
+            break;
+        }
     }
 };
