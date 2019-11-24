@@ -3,4 +3,4 @@ project(wayne_city)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(wayne_city main.cpp minheap.h redblacktree.h building.h myredblacktree.h)
+add_executable(wayne_city main.cpp minheap.h building.h redblacktree.h)
