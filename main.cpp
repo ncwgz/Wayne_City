@@ -23,7 +23,7 @@ vector<Command> getCommands(char* filename);
 vector<string> split(string);
 
 //int main() {
-//    test2();
+//    testRedBlackTree();
 //    return 0;
 //}
 
@@ -42,7 +42,8 @@ int main(int argc, char* argv[]) {
     int builtDays = 0;
     while (!(currentNum < 0 && counter > cmds[cmds.size() - 1].time)) {
         if (currentNum >= 0) {
-            int nowBuildingIndex = heap->getIndexByElement(*rbtree->getValueByKey(currentNum));
+            Building *thisBuilding = rbtree->getValueByKey(currentNum);
+            int nowBuildingIndex = heap->getIndexByElement(*thisBuilding);
             int newIndex = heap->increase(nowBuildingIndex, 1);
 //            rbtree->update(currentNum, heap->getElementPointer(newIndex));
             builtDays ++;
@@ -53,6 +54,9 @@ int main(int argc, char* argv[]) {
                     Building *b = new Building(cmd.arg1, 0, cmd.arg2);
                     heap->insert(b);
                     rbtree->insert(b->buildingNum, b);
+                    vector<Building*> v;
+                    v = rbtree->getValuesByRange(-1, 99999);
+                    cout<<v.size()<<endl;
                 } else if (cmd.cmd == "PrintBuilding") {
                     if (cmd.arg2 == -1) {
                         Building *toPrint = rbtree->getValueByKey(cmd.arg1);
@@ -215,16 +219,10 @@ void testRedBlackTree()
     }
     cout<<endl;
 
-    cout<<"=====================Test end====================="<<endl;
-}
+    cout<<"Expecting: nothing"<<endl;
+    tree.remove(256);
+    cout<<"Expecting: nothing"<<endl;
+    tree.remove(-1);
 
-void test2() {
-    cout<<"==============Testing red black tree=============="<<endl;
-    // Initialize a red black tree with numbers from 1 to 2049
-    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
-    for (int i = 1; i <= 3; ++i) {
-        tree.insert(i, i*10);
-    }
-    tree.remove(2);
     cout<<"=====================Test end====================="<<endl;
 }

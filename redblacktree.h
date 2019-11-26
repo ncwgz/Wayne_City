@@ -319,7 +319,7 @@ private:
                             leftRotate(child);
                         }
                         // Lr(1)-left, Lr(2)
-                        else if (child->left == nullptr || !child->left->isRed) {
+                        else if (child->left != nullptr && child->left->isRed) {
                             child->left->isRed = false;
                             rightRotate(child);
                             rightRotate(cousin);
@@ -433,11 +433,11 @@ private:
                 if (node->left != nullptr) {
                     deficient = node->left;
                     node->left->parent = node->parent;
-                    node->parent->left = node->left;
+                    node->parent->right = node->left;
                 } else if (node->right != nullptr) {
                     deficient = node->right;
                     node->right->parent = node->parent;
-                    node->parent->left = node->right;
+                    node->parent->right = node->right;
                 } else {
                     node->parent->right = nullptr;
                     deficient = nullptr;
