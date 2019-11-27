@@ -57,6 +57,7 @@ private:
         } else {
             root = right;
             root->isRed = false;
+            node->isRed = true;
             right->parent = nullptr;
         }
         right->left = node;
@@ -80,6 +81,7 @@ private:
         } else {
             root = left;
             root->isRed = false;
+            node->isRed = true;
             left->parent = nullptr;
         }
         left->right = node;
@@ -393,7 +395,7 @@ private:
                                 leftRotate(cousin);
                                 rightRotate(parent);
                             }
-                                // Rr(1)-right, Rr(2)
+                            // Rr(1)-right, Rr(2)
                             else if (child->right != nullptr && child->right->isRed) {
                                 child->right->isRed = false;
                                 leftRotate(child);
