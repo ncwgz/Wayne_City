@@ -3,6 +3,7 @@
 //
 
 #include <cstdlib>
+
 using namespace std;
 
 #ifndef WAYNE_CITY_MYREDBLACKTREE_H
@@ -10,7 +11,7 @@ using namespace std;
 
 #endif //WAYNE_CITY_MYREDBLACKTREE_H
 
-template <class K, class V>
+template<class K, class V>
 class Node {
 public:
     bool isRed;
@@ -20,7 +21,7 @@ public:
     K key;
     V value;
 
-    Node (K key, V value) {
+    Node(K key, V value) {
         this->key = key;
         this->value = value;
         this->isRed = true;
@@ -28,9 +29,13 @@ public:
         this->left = nullptr;
         this->right = nullptr;
     }
+
+    Node() {
+
+    }
 };
 
-template <class K, class V>
+template<class K, class V>
 class RedBlackTree {
 private:
     Node<K, V> *root;
@@ -52,7 +57,6 @@ private:
         } else {
             root = right;
             root->isRed = false;
-            node->isRed = true;
             right->parent = nullptr;
         }
         right->left = node;
@@ -76,7 +80,6 @@ private:
         } else {
             root = left;
             root->isRed = false;
-            node->isRed = true;
             left->parent = nullptr;
         }
         left->right = node;
@@ -94,23 +97,22 @@ private:
                     root->isRed = false;
                     node = node->parent->parent;
                 }
-                // LL-Rotate
+                    // LL-Rotate
                 else if (node == node->parent->left) {
                     node->parent->isRed = false;
                     node->parent->parent->isRed = true;
                     root->isRed = false;
                     rightRotate(node->parent->parent);
                 }
-                // LR-Rotate
+                    // LR-Rotate
                 else {
                     node->isRed = false;
                     node->parent->parent->isRed = true;
-                    root->isRed = false;
                     leftRotate(node->parent);
                     rightRotate(node->parent);
+                    root->isRed = false;
                 }
-            }
-            else {
+            } else {
                 // Color-change
                 if (node->parent->parent->left != nullptr && node->parent->parent->left->isRed) {
                     node->parent->isRed = false;
@@ -119,20 +121,20 @@ private:
                     root->isRed = false;
                     node = node->parent->parent;
                 }
-                // RR-Rotate
+                    // RR-Rotate
                 else if (node == node->parent->right) {
                     node->parent->isRed = false;
                     node->parent->parent->isRed = true;
                     root->isRed = false;
                     leftRotate(node->parent->parent);
                 }
-                // RL-Rotate
+                    // RL-Rotate
                 else {
                     node->isRed = false;
                     node->parent->parent->isRed = true;
-                    root->isRed = false;
                     rightRotate(node->parent);
                     leftRotate(node->parent);
+                    root->isRed = false;
                 }
             }
         }
@@ -152,8 +154,7 @@ private:
             } else {
                 append(node, parent->left);
             }
-        }
-        else if (node->key > parent->key) {
+        } else if (node->key > parent->key) {
             if (parent->right == nullptr) {
                 parent->right = node;
                 node->parent = parent;
@@ -166,14 +167,14 @@ private:
         }
     }
 
-    Node<K, V>* minimum(Node<K, V> *node) {
+    Node<K, V> *minimum(Node<K, V> *node) {
         while (node->right != nullptr) {
             node = node->right;
         }
         return node;
     }
 
-    Node<K, V>* maximum(Node<K, V> *node) {
+    Node<K, V> *maximum(Node<K, V> *node) {
         while (node->left != nullptr) {
             node = node->left;
         }
@@ -186,11 +187,11 @@ private:
         B->isRed = OriginalColorOfA;
         Node<K, V> *tmp;
         if (A->left == B) {
-            tmp = A->right;
+            tmp = &*A->right;
             A->right = B->right;
             if (A->right != nullptr) A->right->parent = A;
             B->right = tmp;
-            if (B->right != nullptr) B->right->parent = A;
+            if (B->right != nullptr) B->right->parent = B;
 
             A->left = B->left;
             if (A->left != nullptr) A->left->parent = A;
@@ -206,9 +207,8 @@ private:
                 B->parent = nullptr;
                 root = B;
             }
-        }
-        else if (A->right == B) {
-            tmp = A->left;
+        } else if (A->right == B) {
+            tmp = &*A->left;
             A->left = B->left;
             if (A->left != nullptr) A->left->parent = A;
             B->left = tmp;
@@ -229,20 +229,20 @@ private:
                 root = B;
             }
         } else {
-            tmp = A->left;
+            tmp = &*A->left;
             A->left = B->left;
             if (A->left != nullptr) A->left->parent = A;
             B->left = tmp;
             if (B->left != nullptr) B->left->parent = B;
 
-            tmp = A->right;
+            tmp = &*A->right;
             A->right = B->right;
             if (A->right != nullptr) A->right->parent = A;
             B->right = tmp;
             if (B->right != nullptr) B->right->parent = B;
 
             if (root != A && root != B) {
-                tmp = A->parent;
+                tmp = &*A->parent;
                 A->parent = B->parent;
                 if (B == B->parent->left) B->parent->left = A;
                 else B->parent->right = A;
@@ -269,8 +269,12 @@ private:
 
     void removeFix(Node<K, V> *parent, Node<K, V> *deficient) {
         // Change color
+        if (deficient == root) {
+            return;
+        }
         if (deficient != nullptr && deficient->isRed) {
             deficient->isRed = false;
+            return;
         } else {
             Node<K, V> *cousin;
             // L**
@@ -280,111 +284,122 @@ private:
                 if (cousin != nullptr && !cousin->isRed) {
                     // Lb0 (both cases)
                     if ((cousin->left == nullptr || !cousin->left->isRed)
-                    && (cousin->right == nullptr || !cousin->right->isRed)) {
-                        parent->isRed = false;
+                        && (cousin->right == nullptr || !cousin->right->isRed)) {
                         cousin->isRed = true;
+                        if (parent->isRed == false) {
+                            removeFix(parent->parent, parent);
+                        } else {
+                            parent->isRed = false;
+                        }
                     }
-                    // Lb1-right
+                        // Lb1-right
                     else if ((cousin->left == nullptr || !cousin->left->isRed)
-                         && (cousin->right != nullptr && cousin->right->isRed)) {
+                             && (cousin->right != nullptr && cousin->right->isRed)) {
                         cousin->right->isRed = false;
                         cousin->isRed = parent->isRed;
                         parent->isRed = false;
                         leftRotate(parent);
                     }
-                    // Lb1-left, Lb2
+                        // Lb1-left, Lb2
                     else if (cousin->left != nullptr && cousin->left->isRed) {
                         cousin->left->isRed = parent->isRed;
                         parent->isRed = false;
                         rightRotate(cousin);
-                        leftRotate(cousin->parent);
+                        leftRotate(parent);
                     }
                 }
-                // Lr(*)
+                    // Lr(*)
                 else if (cousin != nullptr) {
                     // Lr(0)
-                    if (cousin->left == nullptr
-                    || ((cousin->left->left == nullptr || !cousin->left->left->isRed)
-                    && (cousin->left->right == nullptr || !cousin->left->right->isRed))) {
-                        cousin->isRed = false;
+                    if ((cousin->right == nullptr || !cousin->right->isRed)
+                        && ((cousin->left == nullptr)
+                            || ((cousin->left->left == nullptr || !cousin->left->left->isRed)
+                                && (cousin->left->right == nullptr || !cousin->left->right->isRed)))) {
                         if (cousin->left != nullptr) {
                             cousin->left->isRed = true;
                         }
                         leftRotate(parent);
-                    }
-                    Node<K, V> *child = cousin->left;
-                    if (child != nullptr) {
-                        // Lr(1)-right
-                        if ((child->right != nullptr && child->right->isRed)
-                        && (child->left == nullptr || !child->left->isRed)) {
-                            child->right->isRed = false;
-                            rightRotate(cousin);
-                            leftRotate(child);
-                        }
-                        // Lr(1)-left, Lr(2)
-                        else if (child->left != nullptr && child->left->isRed) {
-                            child->left->isRed = false;
-                            rightRotate(child);
-                            rightRotate(cousin);
-                            leftRotate(cousin->parent);
+                    } else {
+                        Node<K, V> *child = cousin->left;
+                        if (child != nullptr) {
+                            // Lr(1)-right
+                            if ((child->right != nullptr && child->right->isRed)
+                                && (child->left == nullptr || !child->left->isRed)) {
+                                child->right->isRed = false;
+                                rightRotate(cousin);
+                                leftRotate(parent);
+                            }
+                                // Lr(1)-left, Lr(2)
+                            else if (child->left != nullptr && child->left->isRed) {
+                                child->left->isRed = false;
+                                rightRotate(child);
+                                rightRotate(cousin);
+                                leftRotate(parent);
+                            }
                         }
                     }
                 }
             }
-            // R**
+                // R**
             else {
                 cousin = parent->left;
                 // Rb*
-                if (cousin!= nullptr && !cousin->isRed) {
+                if (cousin != nullptr && !cousin->isRed) {
                     // Rb0 (both cases)
                     if ((cousin->left == nullptr || !cousin->left->isRed)
                         && (cousin->right == nullptr || !cousin->right->isRed)) {
-                        parent->isRed = false;
                         cousin->isRed = true;
+                        if (parent->isRed == false) {
+                            removeFix(parent->parent, parent);
+                        } else {
+                            parent->isRed = false;
+                        }
                     }
-                    // Rb1-left
+                        // Rb1-left
                     else if ((cousin->left != nullptr && cousin->left->isRed)
-                         && (cousin->right == nullptr || !cousin->right->isRed)) {
+                             && (cousin->right == nullptr || !cousin->right->isRed)) {
                         cousin->left->isRed = false;
                         cousin->isRed = parent->isRed;
                         parent->isRed = false;
                         rightRotate(parent);
                     }
-                    // Rb1-right, Rb2
+                        // Rb1-right, Rb2
                     else if (cousin->right != nullptr && cousin->right->isRed) {
                         cousin->right->isRed = parent->isRed;
                         parent->isRed = false;
                         leftRotate(cousin);
-                        rightRotate(cousin->parent);
+                        rightRotate(parent);
                     }
                 }
-                // Rr(*)
+                    // Rr(*)
                 else {
                     // Rr(0)
-                    if (cousin->right == nullptr
-                    || ((cousin->right->left == nullptr || !cousin->right->left->isRed)
-                    && (cousin->right->right == nullptr || !cousin->right->right->isRed))) {
+                    if ((cousin->left == nullptr || !cousin->left->isRed)
+                        && ((cousin->right == nullptr)
+                            || ((cousin->right->left == nullptr || !cousin->right->left->isRed)
+                                && (cousin->right->right == nullptr || !cousin->right->right->isRed)))) {
                         cousin->isRed = false;
                         if (cousin->right != nullptr) {
                             cousin->right->isRed = true;
                         }
                         rightRotate(parent);
-                    }
-                    Node<K, V> *child = cousin->right;
-                    if (child != nullptr) {
-                        // Rr(1)-left
-                        if ((child->left != nullptr && child->left->isRed)
-                        && (child->right == nullptr || !child->right->isRed)) {
-                            child->left->isRed = false;
-                            leftRotate(cousin);
-                            rightRotate(child);
-                        }
-                        // Rr(1)-right, Rr(2)
-                        else if (child->right != nullptr && child->right->isRed) {
-                            child->right->isRed = false;
-                            leftRotate(child);
-                            leftRotate(cousin);
-                            rightRotate(cousin->parent);
+                    } else {
+                        Node<K, V> *child = cousin->right;
+                        if (child != nullptr) {
+                            // Rr(1)-left
+                            if ((child->left != nullptr && child->left->isRed)
+                                && (child->right == nullptr || !child->right->isRed)) {
+                                child->left->isRed = false;
+                                leftRotate(cousin);
+                                rightRotate(parent);
+                            }
+                                // Rr(1)-right, Rr(2)
+                            else if (child->right != nullptr && child->right->isRed) {
+                                child->right->isRed = false;
+                                leftRotate(child);
+                                leftRotate(cousin);
+                                rightRotate(parent);
+                            }
                         }
                     }
                 }
@@ -397,8 +412,7 @@ private:
         if (node->left != nullptr && node->right != nullptr) {
             if (node->left != nullptr) {
                 toReplace = maximum(node->left);
-            }
-            else if (node->right != nullptr) {
+            } else if (node->right != nullptr) {
                 toReplace = minimum(node->right);
             }
             replace(node, toReplace);
@@ -416,7 +430,7 @@ private:
             } else {
                 root = nullptr;
             }
-            delete(node);
+            delete (node);
         } else {
             parent = node->parent;
             if (node == node->parent->left) {
@@ -446,18 +460,17 @@ private:
                     deficient = nullptr;
                 }
             }
-            delete(node);
+            delete (node);
             removeFix(parent, deficient);
         }
     }
 
-    Node<K, V>* getNodeByKey(K key) {
+    Node<K, V> *getNodeByKey(K key) {
         Node<K, V> *node = root;
         while (node != nullptr) {
             if (key < node->key) {
                 node = node->left;
-            }
-            else if (key > node->key) {
+            } else if (key > node->key) {
                 node = node->right;
             } else {
                 return node;
@@ -469,17 +482,28 @@ private:
     void getRange(K min, K max, Node<K, V> *node, std::vector<V> &v) {
         if (node == nullptr) {
             return;
-        }
-        else if (node->key >= min && node->key <= max) {
+        } else if (node->key >= min && node->key <= max) {
             getRange(min, max, node->left, v);
             v.push_back(node->value);
             getRange(min, max, node->right, v);
-        }
-        else if (node->key > max) {
+        } else if (node->key > max) {
             getRange(min, max, node->left, v);
-        }
-        else if (node->key < min) {
+        } else if (node->key < min) {
             getRange(min, max, node->right, v);
+        }
+    }
+
+    void getRangeNodes(K min, K max, Node<K, V> *node, std::vector<Node<K, V>> &v) {
+        if (node == nullptr) {
+            return;
+        } else if (node->key >= min && node->key <= max) {
+            getRangeNodes(min, max, node->left, v);
+            v.push_back(*node);
+            getRangeNodes(min, max, node->right, v);
+        } else if (node->key > max) {
+            getRangeNodes(min, max, node->left, v);
+        } else if (node->key < min) {
+            getRangeNodes(min, max, node->right, v);
         }
     }
 
@@ -498,7 +522,7 @@ public:
     }
 
     V getValueByKey(K key) {
-        Node<K, V>* node = getNodeByKey(key);
+        Node<K, V> *node = getNodeByKey(key);
         if (node != nullptr) {
             return node->value;
         }
@@ -518,45 +542,132 @@ public:
         return v;
     }
 
-    void update(K key, V value) {
-        Node<K, V> *node = getNodeByKey(key);
-        node->value = value;
+    std::vector<Node<K, V>> getNodesByRange(K min, K max) {
+        std::vector<Node<K, V>> v;
+        getRangeNodes(min, max, root, v);
+        return v;
     }
 
+    void test_for_Rr_0() {
+        Node<int, int> *n1 = new Node<int, int>(1, 10);
+        Node<int, int> *n2 = new Node<int, int>(2, 20);
+        Node<int, int> *n3 = new Node<int, int>(3, 30);
+        Node<int, int> *n4 = new Node<int, int>(4, 40);
+        Node<int, int> *n5 = new Node<int, int>(5, 50);
+
+        n4->left = n2;
+        n4->right = n5;
+        n2->left = n1;
+        n2->right = n3;
+
+        n4->parent = nullptr;
+        n2->parent = n4;
+        n5->parent = n4;
+        n1->parent = n2;
+        n3->parent = n2;
+
+        n1->isRed = false;
+        n2->isRed = true;
+        n3->isRed = false;
+        n4->isRed = false;
+        n5->isRed = false;
+
+        root = n4;
+    }
+
+    void test_for_Rr_1_left() {
+        Node<int, int> *n1 = new Node<int, int>(1, 10);
+        Node<int, int> *n2 = new Node<int, int>(2, 20);
+        Node<int, int> *n3 = new Node<int, int>(3, 30);
+        Node<int, int> *n4 = new Node<int, int>(4, 40);
+        Node<int, int> *n5 = new Node<int, int>(5, 50);
+        Node<int, int> *n6 = new Node<int, int>(6, 60);
+
+        n5->left = n2;
+        n5->right = n6;
+        n2->left = n1;
+        n2->right = n4;
+        n4->left = n3;
+
+        n5->parent = nullptr;
+        n2->parent = n5;
+        n6->parent = n5;
+        n1->parent = n2;
+        n4->parent = n2;
+        n3->parent = n4;
+
+        n5->isRed = false;
+        n2->isRed = true;
+        n6->isRed = false;
+        n1->isRed = false;
+        n4->isRed = false;
+        n3->isRed = true;
+
+        root = n5;
+    }
+
+    void test_for_Rr_1_right_Rr_2() {
+        Node<int, int> *n1 = new Node<int, int>(1, 10);
+        Node<int, int> *n2 = new Node<int, int>(2, 20);
+        Node<int, int> *n3 = new Node<int, int>(3, 30);
+        Node<int, int> *n4 = new Node<int, int>(4, 40);
+        Node<int, int> *n5 = new Node<int, int>(5, 50);
+        Node<int, int> *n6 = new Node<int, int>(6, 60);
+        Node<int, int> *n7 = new Node<int, int>(7, 70);
+        Node<int, int> *n8 = new Node<int, int>(8, 80);
+        Node<int, int> *n9 = new Node<int, int>(9, 90);
+
+        n8->left = n2;
+        n8->right = n9;
+        n2->left = n1;
+        n2->right = n4;
+        n4->left = n3;
+        n4->right = n6;
+        n6->left = n5;
+        n6->right = n7;
+
+        n8->parent = nullptr;
+        n2->parent = n8;
+        n9->parent = n8;
+        n1->parent = n2;
+        n4->parent = n2;
+        n3->parent = n4;
+        n6->parent = n4;
+        n5->parent = n6;
+        n7->parent = n6;
+
+        n8->isRed = false;
+        n2->isRed = true;
+        n9->isRed = false;
+        n1->isRed = false;
+        n4->isRed = false;
+        n3->isRed = true;
+        n6->isRed = true;
+        n5->isRed = false;
+        n7->isRed = false;
+
+        root = n8;
+    }
 };
 
-int main() {
-    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
-    for (int i = 0; i < 8; ++i) {
-        tree.insert(i + 1, (i + 1) * 10);
-    }
-
-    vector<int> v = tree.getValuesByRange(0, 10);
-    for (auto x : v) {
-        cout<<x<<", ";
-    }
-    cout<<endl;
-
-    tree.remove(8);
-
-    v = tree.getValuesByRange(0, 10);
-    for (auto x : v) {
-        cout<<x<<", ";
-    }
-    cout<<endl;
-
-    tree.insert(8, 80);
-//    tree.remove(7);
-//    tree.remove(5);
-//    tree.remove(3);
-    tree.remove(1);
-
-    v = tree.getValuesByRange(0, 10);
-    for (auto x : v) {
-        cout<<x<<", ";
-    }
-    cout<<endl;
-
-
-
-}
+//int main() {
+//    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
+//
+////    tree.test_for_Rr_0();
+////    tree.remove(5);
+//
+////    tree.test_for_Rr_1_left();
+////    tree.remove(6);
+//
+////    tree.test_for_Rr_1_right_Rr_2();
+////    tree.remove(9);
+//
+//    vector<Node<int,int>> v = tree.getNodesByRange(0, 10);
+//    for (auto x : v) {
+//        cout<<x.value;
+//        if (x.isRed) cout<<"R";
+//        else cout<<"B";
+//        cout<<endl;
+//    }
+//    cout<<endl;
+//}
