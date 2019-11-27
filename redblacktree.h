@@ -3,6 +3,7 @@
 //
 
 #include <cstdlib>
+using namespace std;
 
 #ifndef WAYNE_CITY_MYREDBLACKTREE_H
 #define WAYNE_CITY_MYREDBLACKTREE_H
@@ -34,6 +35,7 @@ class RedBlackTree {
 private:
     Node<K, V> *root;
 
+    // [Tested]
     void leftRotate(Node<K, V> *node) {
         Node<K, V> *right = node->right;
         node->right = right->left;
@@ -57,6 +59,7 @@ private:
         node->parent = right;
     }
 
+    // [Tested]
     void rightRotate(Node<K, V> *node) {
         Node<K, V> *left = node->left;
         node->left = left->right;
@@ -519,4 +522,41 @@ public:
         Node<K, V> *node = getNodeByKey(key);
         node->value = value;
     }
+
 };
+
+int main() {
+    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
+    for (int i = 0; i < 8; ++i) {
+        tree.insert(i + 1, (i + 1) * 10);
+    }
+
+    vector<int> v = tree.getValuesByRange(0, 10);
+    for (auto x : v) {
+        cout<<x<<", ";
+    }
+    cout<<endl;
+
+    tree.remove(8);
+
+    v = tree.getValuesByRange(0, 10);
+    for (auto x : v) {
+        cout<<x<<", ";
+    }
+    cout<<endl;
+
+    tree.insert(8, 80);
+//    tree.remove(7);
+//    tree.remove(5);
+//    tree.remove(3);
+    tree.remove(1);
+
+    v = tree.getValuesByRange(0, 10);
+    for (auto x : v) {
+        cout<<x<<", ";
+    }
+    cout<<endl;
+
+
+
+}

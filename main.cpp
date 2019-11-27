@@ -18,94 +18,92 @@ typedef struct Command {
 
 void testMinHeap();
 void testRedBlackTree();
-void test2();
+void testRedBlackTree2();
 vector<Command> getCommands(char* filename);
 vector<string> split(string);
 
 //int main() {
-//    testRedBlackTree();
+//    testRedBlackTree2();
 //    return 0;
 //}
 
-int main(int argc, char* argv[]) {
-    char *filename = new char[100];
-    strcpy(filename, argv[1]);
-    vector<Command> cmds = getCommands(filename);
-    for (Command c : cmds) {
-        cout<<c.time<<" | "<<c.cmd<<" | "<<c.arg1<<" | "<<c.arg2<<endl;
-    }
-
-    int counter = 0;
-    MinHeap<Building> *heap = new MinHeap<Building>();
-    RedBlackTree<int, Building*> *rbtree = new RedBlackTree<int, Building*>();
-    int currentNum = -1;
-    int builtDays = 0;
-    while (!(currentNum < 0 && counter > cmds[cmds.size() - 1].time)) {
-        if (currentNum >= 0) {
-            Building *thisBuilding = rbtree->getValueByKey(currentNum);
-            int nowBuildingIndex = heap->getIndexByElement(*thisBuilding);
-            int newIndex = heap->increase(nowBuildingIndex, 1);
-//            rbtree->update(currentNum, heap->getElementPointer(newIndex));
-            builtDays ++;
-        }
-        for (Command cmd : cmds) {
-            if (cmd.time == counter) {
-                if (cmd.cmd == "Insert") {
-                    Building *b = new Building(cmd.arg1, 0, cmd.arg2);
-                    heap->insert(b);
-                    rbtree->insert(b->buildingNum, b);
-                    vector<Building*> v;
-                    v = rbtree->getValuesByRange(-1, 99999);
-                    cout<<v.size()<<endl;
-                } else if (cmd.cmd == "PrintBuilding") {
-                    if (cmd.arg2 == -1) {
-                        Building *toPrint = rbtree->getValueByKey(cmd.arg1);
-                        if (toPrint != nullptr) {
-                            cout<<"("<<toPrint->buildingNum<<","<<toPrint->executedTime<<","<<toPrint->totalTime<<")"<<endl;
-                        } else {
-                            cout<<"(0,0,0)"<<endl;
-                        }
-                    } else {
-                        vector<Building*> v;
-                        v = rbtree->getValuesByRange(cmd.arg1, cmd.arg2);
-                        for (int i = 0; i < v.size() - 1; ++i) {
-                            cout<<"("<<v[i]->buildingNum<<","<<v[i]->executedTime<<","<<v[i]->totalTime<<")"<<",";
-                        }
-                        int last = v.size()-1;
-                        cout<<"("<<v[last]->buildingNum<<","<<v[last]->executedTime<<","<<v[last]->totalTime<<")"<<endl;
-                    }
-                } else {
-                    // Illegal
-                }
-            } else if (cmd.time > counter) {
-                break;
-            }
-        }
-        if (currentNum > 0) {
-            Building currentBuilding = *rbtree->getValueByKey(currentNum);
-            if (currentBuilding.executedTime == currentBuilding.totalTime) {
-                cout<<"("<<currentBuilding.buildingNum<<","<<counter<<")"<<endl;
-                heap->removeElement(currentBuilding);
-                rbtree->remove(currentBuilding.buildingNum);
-                builtDays = 0;
-                currentNum = -1;
-            }
-            if (builtDays == 5) {
-                if (heap->getLength() != 0) {
-                    currentNum = heap->getElement(1).buildingNum;
-                } else {
-                    currentNum = -1;
-                }
-                builtDays = 0;
-            }
-        }
-        if (currentNum == -1 && heap->getLength() != 0) {
-            currentNum = heap->getElement(1).buildingNum;
-        }
-        counter ++;
-    }
-    return 0;
-}
+//int main(int argc, char* argv[]) {
+//    char *filename = new char[100];
+//    strcpy(filename, argv[1]);
+//    vector<Command> cmds = getCommands(filename);
+//    for (Command c : cmds) {
+//        cout<<c.time<<" | "<<c.cmd<<" | "<<c.arg1<<" | "<<c.arg2<<endl;
+//    }
+//
+//    int counter = 0;
+//    MinHeap<Building> *heap = new MinHeap<Building>();
+//    RedBlackTree<int, Building*> *rbtree = new RedBlackTree<int, Building*>();
+//    int currentNum = -1;
+//    int builtDays = 0;
+//    while (!(currentNum < 0 && counter > cmds[cmds.size() - 1].time)) {
+//        if (currentNum >= 0) {
+//            Building *thisBuilding = rbtree->getValueByKey(currentNum);
+//            int nowBuildingIndex = heap->getIndexByElement(*thisBuilding);
+//            int newIndex = heap->increase(nowBuildingIndex, 1);
+//            builtDays ++;
+//        }
+//        for (Command cmd : cmds) {
+//            if (cmd.time == counter) {
+//                if (cmd.cmd == "Insert") {
+//                    Building *b = new Building(cmd.arg1, 0, cmd.arg2);
+//                    heap->insert(b);
+//                    rbtree->insert(b->buildingNum, b);
+//                    vector<Building*> v;
+//                    v = rbtree->getValuesByRange(-1, 99999);
+//                } else if (cmd.cmd == "PrintBuilding") {
+//                    if (cmd.arg2 == -1) {
+//                        Building *toPrint = rbtree->getValueByKey(cmd.arg1);
+//                        if (toPrint != nullptr) {
+//                            cout<<"("<<toPrint->buildingNum<<","<<toPrint->executedTime<<","<<toPrint->totalTime<<")"<<endl;
+//                        } else {
+//                            cout<<"(0,0,0)"<<endl;
+//                        }
+//                    } else {
+//                        vector<Building*> v;
+//                        v = rbtree->getValuesByRange(cmd.arg1, cmd.arg2);
+//                        for (int i = 0; i < v.size() - 1; ++i) {
+//                            cout<<"("<<v[i]->buildingNum<<","<<v[i]->executedTime<<","<<v[i]->totalTime<<")"<<",";
+//                        }
+//                        int last = v.size()-1;
+//                        cout<<"("<<v[last]->buildingNum<<","<<v[last]->executedTime<<","<<v[last]->totalTime<<")"<<endl;
+//                    }
+//                } else {
+//                    // Illegal
+//                }
+//            } else if (cmd.time > counter) {
+//                break;
+//            }
+//        }
+//        if (currentNum > 0) {
+//            Building currentBuilding = *rbtree->getValueByKey(currentNum);
+//            if (currentBuilding.executedTime == currentBuilding.totalTime) {
+//                cout<<"("<<currentBuilding.buildingNum<<","<<counter<<")"<<endl;
+//                heap->removeElement(currentBuilding);
+//                rbtree->remove(currentBuilding.buildingNum);
+//                builtDays = 0;
+//                currentNum = -1;
+//            }
+//            if (builtDays == 5) {
+//                if (heap->getLength() != 0) {
+//                    currentNum = heap->getElement(1).buildingNum;
+//                } else {
+//                    currentNum = -1;
+//                }
+//                builtDays = 0;
+//            }
+//        }
+//        if (currentNum == -1 && heap->getLength() != 0) {
+//            currentNum = heap->getElement(1).buildingNum;
+//        }
+//        counter ++;
+//    }
+//    return 0;
+//}
 
 vector<Command> getCommands(char* filename) {
     fstream txt;
@@ -225,4 +223,15 @@ void testRedBlackTree()
     tree.remove(-1);
 
     cout<<"=====================Test end====================="<<endl;
+}
+
+void testRedBlackTree2() {
+    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
+    tree.insert(3, 30);
+    tree.insert(2, 20);
+    tree.insert(1, 10);
+    vector<int> v = tree.getValuesByRange(0, 4);
+    for (auto x : v) {
+        cout<<x<<endl;
+    }
 }
