@@ -16,94 +16,133 @@ typedef struct Command {
     int arg2;
 };
 
-void testMinHeap();
-void testRedBlackTree();
-void testRedBlackTree2();
+// Get commands from the input file
 vector<Command> getCommands(char* filename);
-vector<string> split(string);
-
-//int main() {
-//    testRedBlackTree2();
-//    return 0;
-//}
+// Clear output file if it exists
+void initOutputFile();
+// Write message into the end of the file with a new line.
+void writeIntoFile(string msg);
 
 int main(int argc, char* argv[]) {
-    char *filename = new char[100];
-    strcpy(filename, argv[1]);
-    vector<Command> cmds = getCommands(filename);
-    for (Command c : cmds) {
-        cout<<c.time<<" | "<<c.cmd<<" | "<<c.arg1<<" | "<<c.arg2<<endl;
-    }
+    initOutputFile(); // Init output file
 
-    int counter = 0;
+    char *filename = new char[100];
+    strcpy(filename, argv[1]); // Get filename from arguments
+    vector<Command> cmds = getCommands(filename); // Get commands from input file
+
+    int counter = 0; // The timer
+    /*
+     * Use a min heap to store the buildings.
+     */
     MinHeap<Building> *heap = new MinHeap<Building>();
+    /*
+     * Use a red black tree to store the pointers of the buildings.
+     * Use building number as the key.
+     */
     RedBlackTree<int, Building*> *rbtree = new RedBlackTree<int, Building*>();
+    // The building number of the current building, -1 when no building is being constructing
     int currentNum = -1;
+    // How many days has the current building been built in this single period (not totally)
     int builtDays = 0;
+    // Stop when no building is being built and all commands have been performed
     while (!(currentNum < 0 && counter > cmds[cmds.size() - 1].time)) {
+        // We have a building to construct today!
         if (currentNum >= 0) {
+            // Get the building by building num from tree
             Building *thisBuilding = rbtree->getValueByKey(currentNum);
             int nowBuildingIndex = heap->getIndexByElement(*thisBuilding);
+            // Increase its executed time by 1
             int newIndex = heap->increase(nowBuildingIndex, 1);
+            // Also the its past days
             builtDays ++;
         }
+        // See if we have a command for today
         for (Command cmd : cmds) {
+            // We have one
             if (cmd.time == counter) {
+                // Insert command
                 if (cmd.cmd == "Insert") {
+                    // Construct a new building and set its executed time to 0
                     Building *b = new Building(cmd.arg1, 0, cmd.arg2);
+                    // Insert the new buliding to the heap
                     heap->insert(b);
+                    // Insert the new building to the tree
                     rbtree->insert(b->buildingNum, b);
-                } else if (cmd.cmd == "PrintBuilding") {
+                }
+                // PrintBuilding command
+                else if (cmd.cmd == "PrintBuilding") {
+                    // Only one argument, search a single building
                     if (cmd.arg2 == -1) {
                         Building *toPrint = rbtree->getValueByKey(cmd.arg1);
+                        // Some building found
                         if (toPrint != nullptr) {
-                            cout<<"("<<toPrint->buildingNum<<","<<toPrint->executedTime<<","<<toPrint->totalTime<<")"<<endl;
-                        } else {
-                            cout<<"(0,0,0)"<<endl;
+                            // Write it into the output
+                            string toWrite = "(" + to_string(toPrint->buildingNum) + "," + to_string(toPrint->executedTime) + "," + to_string(toPrint->totalTime) + ")";
+                            writeIntoFile(toWrite);
                         }
-                    } else {
+                        // No building found
+                        else {
+                            // Write a void building into output
+                            writeIntoFile("(0,0,0)");
+                        }
+                    }
+                    // Search buildings with a range
+                    else {
+                        // Use a vector to store the results
                         vector<Building*> v;
                         v = rbtree->getValuesByRange(cmd.arg1, cmd.arg2);
-                        for (int i = 0; i < v.size() - 1; ++i) {
-                            cout<<"("<<v[i]->buildingNum<<","<<v[i]->executedTime<<","<<v[i]->totalTime<<")"<<",";
+
+                        string toWrite = "";
+                        for (int i = 0; i < v.size() - 1; ++i) { // Except the last one
+                            if (v[i]->executedTime != v[i]->totalTime) {
+                                cout << "(" << v[i]->buildingNum << "," << v[i]->executedTime << "," << v[i]->totalTime
+                                     << "),";
+                                toWrite +=
+                                        "(" + to_string(v[i]->buildingNum) + "," + to_string(v[i]->executedTime) + "," +
+                                        to_string(v[i]->totalTime) + "),";
+                            }
                         }
+                        // Add the last one, but with no comma
                         int last = v.size()-1;
-                        cout<<"("<<v[last]->buildingNum<<","<<v[last]->executedTime<<","<<v[last]->totalTime<<")"<<endl;
+                        toWrite += "(" + to_string(v[last]->buildingNum) + "," + to_string(v[last]->executedTime) + "," + to_string(v[last]->totalTime) + ")";
+                        // Write them into output
+                        writeIntoFile(toWrite);
                     }
-                } else {
-                    // Illegal
                 }
             } else if (cmd.time > counter) {
                 break;
             }
         }
+        // We have constructed some building today
         if (currentNum > 0) {
             Building currentBuilding = *rbtree->getValueByKey(currentNum);
+            // The building has been finished
             if (currentBuilding.executedTime == currentBuilding.totalTime) {
-                cout<<"("<<currentBuilding.buildingNum<<","<<counter<<")"<<endl;
+                string toWrite = "(" + to_string(currentBuilding.buildingNum) + "," + to_string(counter) + ")";
+                writeIntoFile(toWrite);
                 heap->removeElement(currentBuilding);
                 rbtree->remove(currentBuilding.buildingNum);
+
                 builtDays = 0;
                 currentNum = -1;
             }
+            // The building has not finished but has been built for 5 days in this period
             if (builtDays == 5) {
-//                if (heap->getLength() != 0) {
-//                    currentNum = heap->getElement(1).buildingNum;
-//                } else {
-//                    currentNum = -1;
-//                }
                 currentNum = -1;
                 builtDays = 0;
             }
         }
+        // We need to decide the building for tomorrow
         if (currentNum == -1 && heap->getLength() != 0) {
             currentNum = heap->getElement(1).buildingNum;
         }
+        // One day has past
         counter ++;
     }
     return 0;
 }
 
+// Get commands from the input file
 vector<Command> getCommands(char* filename) {
     fstream txt;
     txt.open(filename, ios::in);
@@ -168,69 +207,17 @@ vector<Command> getCommands(char* filename) {
     }
     return commands;
 }
-
-void testRedBlackTree()
-{
-    cout<<"==============Testing red black tree=============="<<endl;
-    // Initialize a red black tree with numbers from 1 to 2049
-    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
-    for (int i = 1; i <= 2049; ++i) {
-        tree.insert(i, i*10);
-    }
-
-    cout<<"Expecting: 40"<<endl;
-    cout<<tree.getValueByKey(4)<<endl;
-
-    cout<<"Expecting: 5120"<<endl;
-    cout<<tree.getValueByKey(512)<<endl;
-
-    cout<<"Expecting: 10"<<endl;
-    cout<<tree.getValueByKey(1)<<endl;
-
-    cout<<"Expecting: 0"<<endl;
-    cout<<tree.getValueByKey(-5)<<endl;
-
-    cout<<"Expecting: 0"<<endl;
-    cout<<tree.getValueByKey(3000)<<endl;
-
-    vector<int> v;
-
-    cout<<"Expecting: 10200, 10210, 10220, 10230, 10240, 10250, 10260"<<endl;
-    v = tree.getValuesByRange(1020, 1026);
-    for (auto x : v) {
-        cout<<x<<" ";
-    }
-    cout<<endl;
-
-    cout<<"Expecting: 0"<<endl;
-    v = tree.getValuesByRange(1026, 1020);
-    for (auto x : v) {
-        cout<<x<<" ";
-    }
-    cout<<endl;
-
-    cout<<"Expecting: 0"<<endl;
-    v = tree.getValuesByRange(2222, 3333);
-    for (auto x : v) {
-        cout<<x<<" ";
-    }
-    cout<<endl;
-
-    cout<<"Expecting: nothing"<<endl;
-    tree.remove(256);
-    cout<<"Expecting: nothing"<<endl;
-    tree.remove(-1);
-
-    cout<<"=====================Test end====================="<<endl;
+// Clear output file if it exists
+void initOutputFile() {
+    ofstream file;
+    file.open("output.txt", ios::out | ios::trunc);
+    file<<"";
+    file.close();
 }
-
-void testRedBlackTree2() {
-    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
-    tree.insert(3, 30);
-    tree.insert(2, 20);
-    tree.insert(1, 10);
-    vector<int> v = tree.getValuesByRange(0, 4);
-    for (auto x : v) {
-        cout<<x<<endl;
-    }
+// Write message into the end of the file with a new line.
+void writeIntoFile(string msg) {
+    ofstream file;
+    file.open("output_file.txt", ios::out | ios::app);
+    file<<msg<<endl;
+    file.close();
 }

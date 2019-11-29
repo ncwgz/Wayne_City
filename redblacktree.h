@@ -14,13 +14,14 @@ using namespace std;
 template<class K, class V>
 class Node {
 public:
-    bool isRed;
-    Node<K, V> *parent;
-    Node<K, V> *left;
-    Node<K, V> *right;
-    K key;
-    V value;
+    bool isRed; // 1 - Red, 0 - Black
+    Node<K, V> *parent; // The pointer to its parent
+    Node<K, V> *left; // The pointer to its left child
+    Node<K, V> *right; // The pointer to its right child
+    K key; // The key of the node. The tree uses this key to maintain order
+    V value; // The value of the node
 
+    // Construct a node with given key value pair
     Node(K key, V value) {
         this->key = key;
         this->value = value;
@@ -30,6 +31,7 @@ public:
         this->right = nullptr;
     }
 
+    // Construct a void node
     Node() {
 
     }
@@ -38,9 +40,13 @@ public:
 template<class K, class V>
 class RedBlackTree {
 private:
-    Node<K, V> *root;
+    Node<K, V> *root; // The pointer to the root node
 
-    // [Tested]
+    /*
+     *    N             R
+     *  Nl  R   ==>   N  Rr
+     *    Rl Rr     Nl Nr
+     */
     void leftRotate(Node<K, V> *node) {
         Node<K, V> *right = node->right;
         node->right = right->left;
@@ -64,7 +70,11 @@ private:
         node->parent = right;
     }
 
-    // [Tested]
+    /*
+     *       N              L
+     *     L  Nr   ==>   Ll  N
+     *   Ll Lr             Lr Nr
+     */
     void rightRotate(Node<K, V> *node) {
         Node<K, V> *left = node->left;
         node->left = left->right;
@@ -87,7 +97,7 @@ private:
         left->right = node;
         node->parent = left;
     }
-
+    // Fix the tree after a node inserted
     void appendFix(Node<K, V> *node) {
         while (root != node && node->parent->isRed) {
             if (node->parent == node->parent->parent->left) {
@@ -99,14 +109,14 @@ private:
                     root->isRed = false;
                     node = node->parent->parent;
                 }
-                    // LL-Rotate
+                // LL-Rotate
                 else if (node == node->parent->left) {
                     node->parent->isRed = false;
                     node->parent->parent->isRed = true;
                     root->isRed = false;
                     rightRotate(node->parent->parent);
                 }
-                    // LR-Rotate
+                // LR-Rotate
                 else {
                     node->isRed = false;
                     node->parent->parent->isRed = true;
@@ -123,14 +133,14 @@ private:
                     root->isRed = false;
                     node = node->parent->parent;
                 }
-                    // RR-Rotate
+                // RR-Rotate
                 else if (node == node->parent->right) {
                     node->parent->isRed = false;
                     node->parent->parent->isRed = true;
                     root->isRed = false;
                     leftRotate(node->parent->parent);
                 }
-                    // RL-Rotate
+                // RL-Rotate
                 else {
                     node->isRed = false;
                     node->parent->parent->isRed = true;
@@ -141,22 +151,29 @@ private:
             }
         }
     }
-
+    // Append a node to the parent as a child
     void append(Node<K, V> *node, Node<K, V> *parent) {
+        // If the tree is empty, make the node as root
         if (root == nullptr) {
             node->isRed = false;
             root = node;
             return;
         }
+        // If the node has a key smaller than the parent's,
         if (node->key < parent->key) {
+            // Parent has no left child, append the node here
             if (parent->left == nullptr) {
                 parent->left = node;
                 node->parent = parent;
                 appendFix(node);
-            } else {
+            }
+            // Recursively append the node to the parent's left
+            else {
                 append(node, parent->left);
             }
-        } else if (node->key > parent->key) {
+        }
+        // Symmetric as above
+        else if (node->key > parent->key) {
             if (parent->right == nullptr) {
                 parent->right = node;
                 node->parent = parent;
@@ -168,37 +185,41 @@ private:
             exit(0);
         }
     }
-
-    Node<K, V> *minimum(Node<K, V> *node) {
+    // Get the right most node of node
+    Node<K, V> *rightMost(Node<K, V> *node) {
         while (node->right != nullptr) {
             node = node->right;
         }
         return node;
     }
-
-    Node<K, V> *maximum(Node<K, V> *node) {
+    // Get the left most node of node
+    Node<K, V> *leftMost(Node<K, V> *node) {
         while (node->left != nullptr) {
             node = node->left;
         }
         return node;
     }
-
+    // Replace the node A with node B
     void replace(Node<K, V> *A, Node<K, V> *B) {
+        // Replace color
         bool OriginalColorOfA = A->isRed;
         A->isRed = B->isRed;
         B->isRed = OriginalColorOfA;
+
         Node<K, V> *tmp;
+        // B is the left child of A
         if (A->left == B) {
+            // Replace right
             tmp = &*A->right;
             A->right = B->right;
             if (A->right != nullptr) A->right->parent = A;
             B->right = tmp;
             if (B->right != nullptr) B->right->parent = B;
-
+            // Replace left
             A->left = B->left;
             if (A->left != nullptr) A->left->parent = A;
             B->left = A;
-
+            // Replace parent
             B->parent = A->parent;
             if (root != A) {
                 if (A == A->parent->left) A->parent->left = B;
@@ -209,7 +230,9 @@ private:
                 B->parent = nullptr;
                 root = B;
             }
-        } else if (A->right == B) {
+        }
+        // Symmetric as above
+        else if (A->right == B) {
             tmp = &*A->left;
             A->left = B->left;
             if (A->left != nullptr) A->left->parent = A;
@@ -230,19 +253,23 @@ private:
                 B->parent = nullptr;
                 root = B;
             }
-        } else {
+        }
+        // A and B are not adjacent
+        else {
+            // Replace left
             tmp = &*A->left;
             A->left = B->left;
             if (A->left != nullptr) A->left->parent = A;
             B->left = tmp;
             if (B->left != nullptr) B->left->parent = B;
-
+            // Replace right
             tmp = &*A->right;
             A->right = B->right;
             if (A->right != nullptr) A->right->parent = A;
             B->right = tmp;
             if (B->right != nullptr) B->right->parent = B;
-
+            // Replace parent
+            // If A and B are both not root
             if (root != A && root != B) {
                 tmp = &*A->parent;
                 A->parent = B->parent;
@@ -251,14 +278,18 @@ private:
                 B->parent = tmp;
                 if (A == tmp->left) tmp->left = B;
                 else tmp->right = B;
-            } else {
+            }
+            else {
+                // A is root
                 if (root == A) {
                     A->parent = B->parent;
                     if (B == B->parent->left) B->parent->left = A;
                     else B->parent->right = A;
                     B->parent = nullptr;
                     root = B;
-                } else {
+                }
+                // B is root
+                else {
                     B->parent = A->parent;
                     if (A == A->parent->left) A->parent->left = B;
                     else A->parent->right = B;
@@ -268,7 +299,7 @@ private:
             }
         }
     }
-
+    // Fix the tree after a node removed
     void removeFix(Node<K, V> *parent, Node<K, V> *deficient) {
         // Change color
         if (deficient == root) {
@@ -294,7 +325,7 @@ private:
                             parent->isRed = false;
                         }
                     }
-                        // Lb1-right
+                    // Lb1-right
                     else if ((cousin->left == nullptr || !cousin->left->isRed)
                              && (cousin->right != nullptr && cousin->right->isRed)) {
                         cousin->right->isRed = false;
@@ -302,7 +333,7 @@ private:
                         parent->isRed = false;
                         leftRotate(parent);
                     }
-                        // Lb1-left, Lb2
+                    // Lb1-left, Lb2
                     else if (cousin->left != nullptr && cousin->left->isRed) {
                         cousin->left->isRed = parent->isRed;
                         parent->isRed = false;
@@ -310,7 +341,7 @@ private:
                         leftRotate(parent);
                     }
                 }
-                    // Lr(*)
+                // Lr(*)
                 else if (cousin != nullptr) {
                     // Lr(0)
                     if ((cousin->right == nullptr || !cousin->right->isRed)
@@ -331,7 +362,7 @@ private:
                                 rightRotate(cousin);
                                 leftRotate(parent);
                             }
-                                // Lr(1)-left, Lr(2)
+                            // Lr(1)-left, Lr(2)
                             else if (child->left != nullptr && child->left->isRed) {
                                 child->left->isRed = false;
                                 rightRotate(child);
@@ -342,7 +373,7 @@ private:
                     }
                 }
             }
-                // R**
+            // R**
             else {
                 cousin = parent->left;
                 // Rb*
@@ -357,7 +388,7 @@ private:
                             parent->isRed = false;
                         }
                     }
-                        // Rb1-left
+                    // Rb1-left
                     else if ((cousin->left != nullptr && cousin->left->isRed)
                              && (cousin->right == nullptr || !cousin->right->isRed)) {
                         cousin->left->isRed = false;
@@ -365,7 +396,7 @@ private:
                         parent->isRed = false;
                         rightRotate(parent);
                     }
-                        // Rb1-right, Rb2
+                    // Rb1-right, Rb2
                     else if (cousin->right != nullptr && cousin->right->isRed) {
                         cousin->right->isRed = parent->isRed;
                         parent->isRed = false;
@@ -373,7 +404,7 @@ private:
                         rightRotate(parent);
                     }
                 }
-                    // Rr(*)
+                // Rr(*)
                 else {
                     // Rr(0)
                     if ((cousin->left == nullptr || !cousin->left->isRed)
@@ -408,27 +439,29 @@ private:
             }
         }
     }
-
+    // Remove the node
     void remove(Node<K, V> *node) {
+        // Replace the node with a precursor or successor node
         Node<K, V> *toReplace;
-        if (node->left != nullptr && node->right != nullptr) {
+        if (node->left != nullptr || node->right != nullptr) {
             if (node->left != nullptr) {
-                toReplace = maximum(node->left);
+                toReplace = rightMost(node->left);
             } else if (node->right != nullptr) {
-                toReplace = minimum(node->right);
+                toReplace = leftMost(node->right);
             }
             replace(node, toReplace);
         }
 
+        // Remove the node and raise its child if it has one
         Node<K, V> *deficient;
         Node<K, V> *parent;
         if (root == node) {
             if (root->left != nullptr) {
                 root = root->left;
-                root->parent = nullptr;
+                root->left->parent = nullptr;
             } else if (root->right != nullptr) {
                 root = root->right;
-                root->parent = nullptr;
+                root->right->parent = nullptr;
             } else {
                 root = nullptr;
             }
@@ -463,10 +496,11 @@ private:
                 }
             }
             delete (node);
+            // Fix the tree after removing
             removeFix(parent, deficient);
         }
     }
-
+    // Get the node which its key is key
     Node<K, V> *getNodeByKey(K key) {
         Node<K, V> *node = root;
         while (node != nullptr) {
@@ -480,7 +514,10 @@ private:
         }
         return nullptr;
     }
-
+    /*
+     * Get the nodes which their key are in the range of min to max
+     * Then store them into a vector v
+     */
     void getRange(K min, K max, Node<K, V> *node, std::vector<V> &v) {
         if (node == nullptr) {
             return;
@@ -495,34 +532,21 @@ private:
         }
     }
 
-    void getRangeNodes(K min, K max, Node<K, V> *node, std::vector<Node<K, V>> &v) {
-        if (node == nullptr) {
-            return;
-        } else if (node->key >= min && node->key <= max) {
-            getRangeNodes(min, max, node->left, v);
-            v.push_back(*node);
-            getRangeNodes(min, max, node->right, v);
-        } else if (node->key > max) {
-            getRangeNodes(min, max, node->left, v);
-        } else if (node->key < min) {
-            getRangeNodes(min, max, node->right, v);
-        }
-    }
-
 public:
+    // Construct a new red black tree by setting its root to null pointer
     RedBlackTree() {
         this->root = nullptr;
     }
-
+    // Create a node with given arguments then insert it into the tree
     void insert(K key, V value) {
         Node<K, V> *node = new Node<K, V>(key, value);
         append(node, root);
     }
-
+    // Remove the node which its key is key
     void remove(K key) {
         remove(getNodeByKey(key));
     }
-
+    // Get value of the node which its key is key
     V getValueByKey(K key) {
         Node<K, V> *node = getNodeByKey(key);
         if (node != nullptr) {
@@ -530,7 +554,7 @@ public:
         }
         return V();
     }
-
+    // Get values of the nodes which their key are in the range of min to max
     std::vector<V> getValuesByRange(K min, K max) {
         std::vector<V> v;
         if (min > max) {
@@ -543,133 +567,4 @@ public:
         }
         return v;
     }
-
-    std::vector<Node<K, V>> getNodesByRange(K min, K max) {
-        std::vector<Node<K, V>> v;
-        getRangeNodes(min, max, root, v);
-        return v;
-    }
-
-    void test_for_Rr_0() {
-        Node<int, int> *n1 = new Node<int, int>(1, 10);
-        Node<int, int> *n2 = new Node<int, int>(2, 20);
-        Node<int, int> *n3 = new Node<int, int>(3, 30);
-        Node<int, int> *n4 = new Node<int, int>(4, 40);
-        Node<int, int> *n5 = new Node<int, int>(5, 50);
-
-        n4->left = n2;
-        n4->right = n5;
-        n2->left = n1;
-        n2->right = n3;
-
-        n4->parent = nullptr;
-        n2->parent = n4;
-        n5->parent = n4;
-        n1->parent = n2;
-        n3->parent = n2;
-
-        n1->isRed = false;
-        n2->isRed = true;
-        n3->isRed = false;
-        n4->isRed = false;
-        n5->isRed = false;
-
-        root = n4;
-    }
-
-    void test_for_Rr_1_left() {
-        Node<int, int> *n1 = new Node<int, int>(1, 10);
-        Node<int, int> *n2 = new Node<int, int>(2, 20);
-        Node<int, int> *n3 = new Node<int, int>(3, 30);
-        Node<int, int> *n4 = new Node<int, int>(4, 40);
-        Node<int, int> *n5 = new Node<int, int>(5, 50);
-        Node<int, int> *n6 = new Node<int, int>(6, 60);
-
-        n5->left = n2;
-        n5->right = n6;
-        n2->left = n1;
-        n2->right = n4;
-        n4->left = n3;
-
-        n5->parent = nullptr;
-        n2->parent = n5;
-        n6->parent = n5;
-        n1->parent = n2;
-        n4->parent = n2;
-        n3->parent = n4;
-
-        n5->isRed = false;
-        n2->isRed = true;
-        n6->isRed = false;
-        n1->isRed = false;
-        n4->isRed = false;
-        n3->isRed = true;
-
-        root = n5;
-    }
-
-    void test_for_Rr_1_right_Rr_2() {
-        Node<int, int> *n1 = new Node<int, int>(1, 10);
-        Node<int, int> *n2 = new Node<int, int>(2, 20);
-        Node<int, int> *n3 = new Node<int, int>(3, 30);
-        Node<int, int> *n4 = new Node<int, int>(4, 40);
-        Node<int, int> *n5 = new Node<int, int>(5, 50);
-        Node<int, int> *n6 = new Node<int, int>(6, 60);
-        Node<int, int> *n7 = new Node<int, int>(7, 70);
-        Node<int, int> *n8 = new Node<int, int>(8, 80);
-        Node<int, int> *n9 = new Node<int, int>(9, 90);
-
-        n8->left = n2;
-        n8->right = n9;
-        n2->left = n1;
-        n2->right = n4;
-        n4->left = n3;
-        n4->right = n6;
-        n6->left = n5;
-        n6->right = n7;
-
-        n8->parent = nullptr;
-        n2->parent = n8;
-        n9->parent = n8;
-        n1->parent = n2;
-        n4->parent = n2;
-        n3->parent = n4;
-        n6->parent = n4;
-        n5->parent = n6;
-        n7->parent = n6;
-
-        n8->isRed = false;
-        n2->isRed = true;
-        n9->isRed = false;
-        n1->isRed = false;
-        n4->isRed = false;
-        n3->isRed = true;
-        n6->isRed = true;
-        n5->isRed = false;
-        n7->isRed = false;
-
-        root = n8;
-    }
 };
-
-//int main() {
-//    RedBlackTree<int, int> tree = RedBlackTree<int, int>();
-//
-////    tree.test_for_Rr_0();
-////    tree.remove(5);
-//
-////    tree.test_for_Rr_1_left();
-////    tree.remove(6);
-//
-////    tree.test_for_Rr_1_right_Rr_2();
-////    tree.remove(9);
-//
-//    vector<Node<int,int>> v = tree.getNodesByRange(0, 10);
-//    for (auto x : v) {
-//        cout<<x.value;
-//        if (x.isRed) cout<<"R";
-//        else cout<<"B";
-//        cout<<endl;
-//    }
-//    cout<<endl;
-//}
